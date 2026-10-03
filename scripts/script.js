@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const items = carousel.querySelectorAll('.carousel-item');
         const btnPrev = carousel.querySelector('.prev');
         const btnNext = carousel.querySelector('.next');
-        
+
         let currentIndex = 0;
 
         function updateCarousel(newIndex) {
@@ -45,19 +45,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const botoesAdotar = document.querySelectorAll('.btn-adotar');
+    const botoesApadrinhar = document.querySelectorAll('.btn-apadrinhar');
     const formAdocao = document.querySelector('.form-adocao');
-    const selectAnimal = document.getElementById('animal');
-    const btnFechar = document.getElementById('fechar-form');
+    const formApadrinha = document.querySelector('.form-apadrinha');
 
+    // Seletores específicos para cada formulário
+    const selectAnimalAdocao = document.getElementById('animal-adocao');
+    const selectAnimalApadrinha = document.getElementById('animal-apadrinha');
+    const btnFecharAdocao = document.getElementById('fechar-adocao');
+    const btnFecharApadrinha = document.getElementById('fechar-apadrinha');
+
+    // Lógica de Adoção
     botoesAdotar.forEach(botao => {
         botao.addEventListener('click', (evento) => {
             const cartao = evento.target.closest('.card-animal');
             const nomeAnimal = cartao.querySelector('h3').innerText.toLowerCase();
 
-            if (selectAnimal) {
-                Array.from(selectAnimal.options).forEach((opcao, index) => {
+            if (selectAnimalAdocao) {
+                Array.from(selectAnimalAdocao.options).forEach((opcao, index) => {
                     if (opcao.text.toLowerCase() === nomeAnimal) {
-                        selectAnimal.selectedIndex = index;
+                        selectAnimalAdocao.selectedIndex = index;
                     }
                 });
             }
@@ -67,11 +74,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    if (btnFechar) {
-        btnFechar.addEventListener('click', () => {
+    if (btnFecharAdocao) {
+        btnFecharAdocao.addEventListener('click', () => {
             formAdocao.classList.add('hide');
         });
     }
+
+    // Lógica de Apadrinhamento
+    botoesApadrinhar.forEach(botao => {
+        botao.addEventListener('click', (evento) => {
+            const cartao = evento.target.closest('.card-animal');
+            const nomeAnimal = cartao.querySelector('h3').innerText.toLowerCase();
+
+            if (selectAnimalApadrinha) {
+                Array.from(selectAnimalApadrinha.options).forEach((opcao, index) => {
+                    if (opcao.text.toLowerCase() === nomeAnimal) {
+                        selectAnimalApadrinha.selectedIndex = index;
+                    }
+                });
+            }
+            formApadrinha.classList.remove('hide');
+            formApadrinha.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    if (btnFecharApadrinha) {
+        btnFecharApadrinha.addEventListener('click', () => {
+            formApadrinha.classList.add('hide');
+        });
+    }
+
+
 
     const linkGerencia = document.getElementById('btn-login-nav');
     const modalLogin = document.getElementById('modal-login');
@@ -80,9 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (linkGerencia) {
         linkGerencia.addEventListener('click', (evento) => {
-            evento.preventDefault(); 
+            evento.preventDefault();
             modalLogin.classList.remove('hide');
-            document.body.classList.add('no-scroll'); 
+            document.body.classList.add('no-scroll');
         });
     }
 
@@ -95,50 +128,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (formAcessoAdmin) {
         formAcessoAdmin.addEventListener('submit', (evento) => {
-            evento.preventDefault(); 
+            evento.preventDefault();
             window.location.href = 'admin.html';
         });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-    const navButtons = document.querySelectorAll('.nav-btn');
-    const dashCards = document.querySelectorAll('.dash-card');
-    const botoesVoltar = document.querySelectorAll('.btn-voltar-dash');
-    const sections = document.querySelectorAll('.admin-section');
+        const navButtons = document.querySelectorAll('.nav-btn');
+        const dashCards = document.querySelectorAll('.dash-card');
+        const botoesVoltar = document.querySelectorAll('.btn-voltar-dash');
+        const sections = document.querySelectorAll('.admin-section');
 
-    function alternarSecao(targetId) {
-        navButtons.forEach(btn => {
-            if (btn.getAttribute('data-target') === targetId) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
+        function alternarSecao(targetId) {
+            navButtons.forEach(btn => {
+                if (btn.getAttribute('data-target') === targetId) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            sections.forEach(sec => sec.classList.add('hide'));
+
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.remove('hide');
             }
+        }
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                alternarSecao(button.getAttribute('data-target'));
+            });
         });
 
-        sections.forEach(sec => sec.classList.add('hide'));
+        dashCards.forEach(card => {
+            card.addEventListener('click', () => {
+                alternarSecao(card.getAttribute('data-target'));
+            });
+        });
+
+        botoesVoltar.forEach(botao => {
+            botao.addEventListener('click', () => {
+                alternarSecao('dashboard');
+            });
+        });
+    });
+
+    const imagensCards = document.querySelectorAll('.card-animal img');
+    const modalImagemAnimal = document.getElementById('modal-imagem-animal');
+    const imgAmpliada = document.getElementById('img-ampliada');
+    const tituloModalAnimal = document.getElementById('titulo-modal-animal');
+    const btnFecharModalImagem = document.getElementById('fechar-modal-imagem');
+
+    imagensCards.forEach(imagem => {
+        imagem.style.cursor = 'pointer'; 
+        imagem.addEventListener('click', (evento) => {
+            const cartao = evento.target.closest('.card-animal');
+            const nomeAnimal = cartao.querySelector('h3').innerText;
+            const srcImagem = evento.target.src;
+
         
-        const targetSection = document.getElementById(targetId);
-        if (targetSection) {
-            targetSection.classList.remove('hide');
-        }
+            imgAmpliada.src = srcImagem;
+            tituloModalAnimal.innerText = nomeAnimal;
+
+         
+            modalImagemAnimal.classList.remove('hide');
+            document.body.classList.add('no-scroll');
+        });
+    });
+
+    if (btnFecharModalImagem) {
+        btnFecharModalImagem.addEventListener('click', () => {
+            modalImagemAnimal.classList.add('hide');
+            document.body.classList.remove('no-scroll');
+        });
     }
 
-    navButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            alternarSecao(button.getAttribute('data-target'));
+    if (modalImagemAnimal) {
+        modalImagemAnimal.addEventListener('click', (evento) => {
+            if (evento.target === modalImagemAnimal) {
+                modalImagemAnimal.classList.add('hide');
+                document.body.classList.remove('no-scroll');
+            }
         });
-    });
+    }
 
-    dashCards.forEach(card => {
-        card.addEventListener('click', () => {
-            alternarSecao(card.getAttribute('data-target'));
-        });
-    });
-
-    botoesVoltar.forEach(botao => {
-        botao.addEventListener('click', () => {
-            alternarSecao('dashboard');
-        });
-    });
-});
 });
