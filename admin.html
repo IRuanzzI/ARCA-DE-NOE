@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAINEL DE GESTÃO | Arca de Noé</title>
+    <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="styles/admin-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="admin-body">
+    
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-paw"></i> ARCA DE NOÉ</h2>
+            <p>Painel Administrativo</p>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="nav-btn active" data-target="dashboard"><i class="fas fa-th-large"></i> Dashboard</button>
+            <button class="nav-btn" data-target="dia-a-dia"><i class="fas fa-camera-retro"></i> Dia-a-Dia</button>
+            <button class="nav-btn" data-target="solicitacoes"><i class="fas fa-envelope-open-text"></i> Solicitações <span class="badge">3</span></button>
+            <button class="nav-btn" data-target="animais"><i class="fas fa-dog"></i> Prontuários</button>
+            <button class="nav-btn" data-target="doacoes"><i class="fas fa-donate"></i> Financeiro</button>
+            <button class="nav-btn" data-target="estrelinhas"><i class="fas fa-star"></i> Estrelinhas</button>
+        </nav>
+        <div class="sidebar-footer">
+            <button onclick="window.location.href='index.html'" class="btn-sair"><i class="fas fa-sign-out-alt"></i> SAIR DO SISTEMA</button>
+        </div>
+    </aside>
+
+    <main class="admin-content">
+        <header class="admin-topbar">
+            <h2>Painel de Controle</h2>
+            <div class="user-profile">
+                <div class="user-info">
+                    <span class="user-name">Administrador</span>
+                    <span class="user-role">Gestão Geral</span>
+                </div>
+                <div class="avatar"><i class="fas fa-user"></i></div>
+            </div>
+        </header>
+
+        <section id="dashboard" class="admin-section active">
+            <div class="section-header">
+                <h3>Bem-vindo ao Sistema</h3>
+                <p>Selecione uma opção abaixo para gerenciar o abrigo:</p>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="dash-card" data-target="dia-a-dia">
+                    <div class="dash-icon orange"><i class="fas fa-camera-retro"></i></div>
+                    <h4>Dia-a-Dia</h4>
+                    <p>Publicar rotina e fotos</p>
+                </div>
+                <div class="dash-card" data-target="solicitacoes">
+                    <div class="dash-icon blue"><i class="fas fa-envelope-open-text"></i></div>
+                    <h4>Solicitações</h4>
+                    <p>Analisar pedidos de adoção</p>
+                </div>
+                <div class="dash-card" data-target="animais">
+                    <div class="dash-icon green"><i class="fas fa-dog"></i></div>
+                    <h4>Prontuários</h4>
+                    <p>Gerenciar cães e gatos</p>
+                </div>
+                <div class="dash-card" data-target="doacoes">
+                    <div class="dash-icon purple"><i class="fas fa-donate"></i></div>
+                    <h4>Financeiro</h4>
+                    <p>Controle de doações</p>
+                </div>
+                <div class="dash-card" data-target="estrelinhas">
+                    <div class="dash-icon dark"><i class="fas fa-star"></i></div>
+                    <h4>Estrelinhas</h4>
+                    <p>Memorial dos animais</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="dia-a-dia" class="admin-section hide">
+            <div class="section-header flex-between">
+                <div>
+                    <h3>Publicar no Dia-a-Dia</h3>
+                    <p>Adicione novas memórias e atualizações da rotina.</p>
+                </div>
+                <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
+            </div>
+            <div class="form-panel">
+                <form action="#">
+                    <div class="form-group">
+                        <label for="atividade">Título</label>
+                        <input type="text" id="atividade" name="atividade">
+                    </div>
+                    <div class="form-group">
+                        <label for="descricao-atividade">Descrição da Rotina</label>
+                        <textarea id="descricao-atividade" rows="4"></textarea>
+                    </div>
+                    <div class="form-group form-grid">
+                        <div>
+                            <label for="data">Data do Registro</label>
+                            <input type="date" id="data" name="data">
+                        </div>
+                        <div>
+                            <label for="fotos">Fotos (Múltiplas)</label>
+                            <input type="file" id="fotos" name="fotos" multiple class="file-input">
+                        </div>
+                    </div>
+                    <button type="button" class="btn-acao"><i class="fas fa-upload"></i> PUBLICAR NO SITE</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="solicitacoes" class="admin-section hide">
+            <div class="section-header flex-between">
+                <div>
+                    <h3>Solicitações de Adoção</h3>
+                    <p>Gerencie as fichas enviadas pelos adotantes.</p>
+                </div>
+                <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
+            </div>
+            <div class="card-list">
+                <div class="request-card">
+                    <div class="request-header">
+                        <h4>Animal: <strong>Thor</strong></h4>
+                        <span class="status-badge pending">Aguardando Contato</span>
+                    </div>
+                    <div class="request-body">
+                        <p><strong>Candidato:</strong> João Silva</p>
+                        <p><strong>E-mail:</strong> joao.silva@example.com</p>
+                        <p><strong>WhatsApp:</strong> (11) 98765-4321</p>
+                        <p><strong>Data:</strong> 03/10/2026</p>
+                    </div>
+                    <div class="request-actions">
+                        <button class="btn-success"><i class="fas fa-check"></i> Aprovar Perfil</button>
+                        <button class="btn-danger"><i class="fas fa-times"></i> Recusar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="animais" class="admin-section hide">
+            <div class="section-header flex-between">
+                <div>
+                    <h3>Prontuário dos Animais</h3>
+                    <p>Lista completa de resgatados e adotados.</p>
+                </div>
+                <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="pesquisa-animal" placeholder="Buscar por nome ou microchip...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>Nome</th>
+                            <th>Idade</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><img src="assets/imgs/resgatado-1.jpeg" class="table-img"></td>
+                            <td><strong>Thor</strong><br><small>Macho</small></td>
+                            <td>1 ano</td>
+                            <td><span class="status-badge available">Disponível</span></td>
+                            <td class="table-actions">
+                                <button class="btn-icon edit"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="doacoes" class="admin-section hide">
+            <div class="section-header flex-between">
+                <div>
+                    <h3>Controle Financeiro e Doações</h3>
+                    <p>Entradas e apoio recebido.</p>
+                </div>
+                <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Doador</th>
+                            <th>Contato</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>20/03/2024</td>
+                            <td><strong>Maria Oliveira</strong></td>
+                            <td>maria@example.com</td>
+                            <td class="valor-doacao">R$ 100,00</td>
+                            <td><span class="status-badge success">Confirmado</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="estrelinhas" class="admin-section hide">
+            <div class="section-header flex-between">
+                <div>
+                    <h3>Registro de Óbitos (Estrelinhas)</h3>
+                    <p>Memorial e histórico dos animais que partiram.</p>
+                </div>
+                <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Data de Falecimento</th>
+                            <th>FOTO</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Lindinha</strong></td>
+                            <td>10/02/2024</td>
+                            <td>FOTO</td>
+                            <td class="table-actions">
+                                <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Script exclusivo do painel -->
+    <script src="scripts/admin-script.js"></script>
+</body>
+</html>
