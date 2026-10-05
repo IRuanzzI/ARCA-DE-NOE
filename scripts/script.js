@@ -182,17 +182,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnFecharModalImagem = document.getElementById('fechar-modal-imagem');
 
     imagensCards.forEach(imagem => {
-        imagem.style.cursor = 'pointer'; 
+        imagem.style.cursor = 'pointer';
         imagem.addEventListener('click', (evento) => {
             const cartao = evento.target.closest('.card-animal');
             const nomeAnimal = cartao.querySelector('h3').innerText;
             const srcImagem = evento.target.src;
 
-        
+
             imgAmpliada.src = srcImagem;
             tituloModalAnimal.innerText = nomeAnimal;
 
-         
+
             modalImagemAnimal.classList.remove('hide');
             document.body.classList.add('no-scroll');
         });
@@ -213,5 +213,30 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    //TEXTO ANIMADO
+
+    const elemento = document.getElementById('texto-animado');
+    const textoCompleto = elemento.getAttribute('data-text');
+    elemento.textContent = ''; 
+
+    // Função que digita letra por letra
+    function digitar(elemento, texto, index = 0) {
+        if (index < texto.length) {
+            elemento.textContent += texto.charAt(index);
+            setTimeout(() => digitar(elemento, texto, index + 1), 20); //controle por MS
+        }
+    }
+
+    const observador = new IntersectionObserver((entradas) => {
+        entradas.forEach(entrada => {
+            if (entrada.isIntersecting) {
+                digitar(elemento, textoCompleto);
+                observador.disconnect(); // Para de observar depois que digita a primeira vez
+            }
+        });
+    });
+
+    observador.observe(elemento);
 
 });
