@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +9,9 @@
     <link rel="stylesheet" href="styles/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
+
 <body class="admin-body">
-    
+
     <aside class="sidebar">
         <div class="sidebar-header">
             <h2><i class="fas fa-paw"></i> ARCA DE NOÉ</h2>
@@ -18,13 +20,15 @@
         <nav class="sidebar-nav">
             <button class="nav-btn active" data-target="dashboard"><i class="fas fa-th-large"></i> Dashboard</button>
             <button class="nav-btn" data-target="dia-a-dia"><i class="fas fa-camera-retro"></i> Dia-a-Dia</button>
-            <button class="nav-btn" data-target="solicitacoes"><i class="fas fa-envelope-open-text"></i> Solicitações <span class="badge">3</span></button>
+            <button class="nav-btn" data-target="solicitacoes"><i class="fas fa-envelope-open-text"></i> Solicitações
+                <span class="badge">3</span></button>
             <button class="nav-btn" data-target="animais"><i class="fas fa-dog"></i> Prontuários</button>
             <button class="nav-btn" data-target="doacoes"><i class="fas fa-donate"></i> Financeiro</button>
             <button class="nav-btn" data-target="estrelinhas"><i class="fas fa-star"></i> Estrelinhas</button>
         </nav>
         <div class="sidebar-footer">
-            <button onclick="window.location.href='index.html'" class="btn-sair"><i class="fas fa-sign-out-alt"></i> SAIR DO SISTEMA</button>
+            <button onclick="window.location.href='index.html'" class="btn-sair"><i class="fas fa-sign-out-alt"></i>
+                SAIR DO SISTEMA</button>
         </div>
     </aside>
 
@@ -33,8 +37,8 @@
             <h2>Painel de Controle</h2>
             <div class="user-profile">
                 <div class="user-info">
-                    <span class="user-name">Administrador</span>
-                    <span class="user-role">Gestão Geral</span>
+                    <span class="user-name" id="name-of-user">Administrador</span>
+                    <span class="user-role" id="role-of-user">Gestão Geral</span>
                 </div>
                 <div class="avatar"><i class="fas fa-user"></i></div>
             </div>
@@ -45,7 +49,7 @@
                 <h3>Bem-vindo ao Sistema</h3>
                 <p>Selecione uma opção abaixo para gerenciar o abrigo:</p>
             </div>
-            
+
             <div class="dashboard-grid">
                 <div class="dash-card" data-target="dia-a-dia">
                     <div class="dash-icon orange"><i class="fas fa-camera-retro"></i></div>
@@ -150,9 +154,38 @@
                 <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
             </div>
             <div class="search-bar">
-                <input type="text" id="pesquisa-animal" placeholder="Buscar por nome ou microchip...">
+                <input type="text" id="pesquisa-animal" placeholder="Buscar por nome...">
                 <button><i class="fas fa-search"></i></button>
+                <button id="btnAddAnimal" style="background-color: green;"><i class="fas fa-add"></i></button>
             </div>
+            <section class="form-animal hide" id="formulario-animal">
+                <div class="form-card">
+                    <h2><i class="fas fa-clipboard-list"></i> REGISTRO DE ANIMAL </h2>
+                    <p>Preencha os dados do animal.</p>
+                    <form id="form-registro-animal">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="nome">Nome</label>
+                                <input type="text" id="nome" name="nome" placeholder="NOME" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="animlPicture" id="lblanimalPicture"
+                                    style="width: 100%; margin-top: 5px;">
+                                    FOTOS</label>
+                                <input type="file" id="animalPicture" class="form-control"
+                                    placeholder="Alterar foto de perfil"
+                                    style="background:var(--bg-input); color:white; border-color:var(--border-color); width: 100%; margin-top: 5px;">
+                            </div>
+                            <div class="form-group full-width botoes-form">
+                                <button type="submit" class="btn-enviar">REGISTRAR</button>
+                                <button type="button" class="btn-fechar" id="cancelarRegistro">Cancelar e
+                                    Voltar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
             <div class="table-container">
                 <table class="data-table">
                     <thead>
@@ -270,4 +303,5 @@
     <!-- Script exclusivo do painel -->
     <script src="scripts/admin-script.js"></script>
 </body>
+
 </html>

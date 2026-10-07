@@ -1,4 +1,8 @@
+ const API_URL = "http://localhost:8080"
+
 document.addEventListener('DOMContentLoaded', () => {
+
+   
 
     const carousels = document.querySelectorAll('.carousel');
 
@@ -129,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (formAcessoAdmin) {
         formAcessoAdmin.addEventListener('submit', (evento) => {
             evento.preventDefault();
-            window.location.href = 'admin.html';
+            entrar();
         });
     }
 
@@ -218,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const elemento = document.getElementById('texto-animado');
     const textoCompleto = elemento.getAttribute('data-text');
-    elemento.textContent = ''; 
+    elemento.textContent = '';
 
     // Função que digita letra por letra
     function digitar(elemento, texto, index = 0) {
@@ -239,4 +243,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     observador.observe(elemento);
 
+
+
 });
+
+async function entrar() {
+    const nome = document.getElementById("admin-user").value.trim();
+    const senha = document.getElementById("admin-pass").value.trim();
+    const mensagemErro = document.getElementById("erro");
+    mensagemErro.textContent = "";
+
+    try {
+        const resposta = await fetch(`${API_URL}/usuarios/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nome: nome, senha: senha })
+        });
+
+        if (resposta.status === 200) {
+            const data = await resposta.json();
+            if (data.token) localStorage.setItem('jwt_token', data.token);
+            if (data.nome) {
+                localStorage.setItem('nome', data.nome);
+            }
+            if (data.cargo) localStorage.setItem('cargo', data.cargo);
+            if (data.id) localStorage.setItem('usuario.id', data.id);
+            window.location.href = 'admin.html'
+            
+
+        } else {
+            mensagemErro.textContent = "Usuário ou senha incorretos!";
+        }
+    } catch (erro) {
+        console.error("Erro na requisição:", erro);
+        mensagemErro.textContent = "Erro ao conectar com o servidor. Tente novamente.";
+    }
+}
