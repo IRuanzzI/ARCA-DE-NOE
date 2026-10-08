@@ -179,37 +179,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // ==========================================
+    // MODAL DE AMPLIAÇÃO DE IMAGEM DO ANIMAL (CORRIGIDO)
+    // ==========================================
     const imagensCards = document.querySelectorAll('.card-animal img');
     const modalImagemAnimal = document.getElementById('modal-imagem-animal');
     const imgAmpliada = document.getElementById('img-ampliada');
     const tituloModalAnimal = document.getElementById('titulo-modal-animal');
     const btnFecharModalImagem = document.getElementById('fechar-modal-imagem');
 
-    imagensCards.forEach(imagem => {
-        imagem.style.cursor = 'pointer';
-        imagem.addEventListener('click', (evento) => {
-            const cartao = evento.target.closest('.card-animal');
-            const nomeAnimal = cartao.querySelector('h3').innerText;
-            const srcImagem = evento.target.src;
-
-
-            imgAmpliada.src = srcImagem;
-            tituloModalAnimal.innerText = nomeAnimal;
-
-
-            modalImagemAnimal.classList.remove('hide');
-            document.body.classList.add('no-scroll');
+    if (modalImagemAnimal && imgAmpliada) {
+        imagensCards.forEach(imagem => {
+            imagem.style.cursor = 'pointer';
+            
+            // Removemos eventos antigos duplicados para evitar conflitos
+            imagem.replaceWith(imagem.cloneNode(true));
         });
-    });
 
-    if (btnFecharModalImagem) {
-        btnFecharModalImagem.addEventListener('click', () => {
-            modalImagemAnimal.classList.add('hide');
-            document.body.classList.remove('no-scroll');
+        // Reatribui os ouvintes aos novos elementos limpos
+        document.querySelectorAll('.card-animal img').forEach(imagem => {
+            imagem.style.cursor = 'pointer';
+            imagem.addEventListener('click', (evento) => {
+                const cartao = evento.target.closest('.card-animal');
+                if (cartao) {
+                    const h3 = cartao.querySelector('h3');
+                    const nomeAnimal = h3 ? h3.innerText : 'Animal';
+                    
+                    // Usa diretamente a propriedade src da imagem clicada
+                    imgAmpliada.src = imagem.src;
+                    tituloModalAnimal.innerText = nomeAnimal;
+
+                    modalImagemAnimal.classList.remove('hide');
+                    document.body.classList.add('no-scroll');
+                }
+            });
         });
-    }
 
-    if (modalImagemAnimal) {
+        if (btnFecharModalImagem) {
+            btnFecharModalImagem.addEventListener('click', () => {
+                modalImagemAnimal.classList.add('hide');
+                document.body.classList.remove('no-scroll');
+            });
+        }
+
         modalImagemAnimal.addEventListener('click', (evento) => {
             if (evento.target === modalImagemAnimal) {
                 modalImagemAnimal.classList.add('hide');
