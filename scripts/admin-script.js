@@ -1,6 +1,34 @@
 const API_URL = "http://localhost:8080"
 
+document.addEventListener('input', function (event) {
+    const elemento = event.target;
+
+    if (elemento.tagName === 'INPUT' || elemento.tagName === 'TEXTAREA') {
+
+        // Ignora arquivos, senhas, e-mails e a classe de exceção
+        if (elemento.type === 'file' ||
+            elemento.type === 'password' ||
+            elemento.type === 'email' ||
+            elemento.classList.contains('ignorar-maiusculo')) {
+            return;
+        }
+
+        const tiposValidos = ['text', 'search', 'url', 'tel'];
+        if (elemento.tagName === 'TEXTAREA' || tiposValidos.includes(elemento.type)) {
+
+            const start = elemento.selectionStart;
+            const end = elemento.selectionEnd;
+
+            elemento.value = elemento.value.toUpperCase();
+
+            elemento.setSelectionRange(start, end);
+        }
+    }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
+
+
     const navButtons = document.querySelectorAll('.nav-btn');
     const dashCards = document.querySelectorAll('.dash-card');
     const botoesVoltar = document.querySelectorAll('.btn-voltar-dash');
@@ -15,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const cargoLogg = localStorage.getItem('cargo');
     cargo.innerText = cargoLogg;
 
+    carregarDiarioAdmin();
 
 
 
@@ -123,7 +152,8 @@ async function addCad(e) {
     // 4. Montamos o objeto referenciando a variável que acabamos de criar
     const novoAnimal = {
         nome: nome,
-        foto: fotoFinal
+        foto: fotoFinal,
+        disponivel: true
     };
 
     // 5. Envio para o Java
@@ -365,7 +395,7 @@ function abrirModalEditaAnimal(id, nomeAtual, fotoAtual) {
 }
 
 function fecharModalEditaAnimal() {
-    
+
     document.getElementById('modal-edita-animal').classList.add('hide');
     document.querySelector('.admin-content').classList.remove('no-scroll');
 }
@@ -669,5 +699,144 @@ async function salvarMidiaProntuario(dadosParciais) {
         }
     } catch (error) {
         console.error('Erro na requisição:', error);
+    }
+}
+
+
+
+async function uploadDiario() {
+    
+    const form = document.getElementById('form-diario');
+
+  
+    if (!form.checkValidity()) {
+        form.reportValidity(); 
+        return; 
+    }
+
+
+    const descricao = document.getElementById("descricao-atividade").value.trim();
+    const data = document.getElementById("data").value.trim();
+    const foto = document.getElementById("fotos");
+
+
+
+    // 3. Declaramos a variável vazia primeiro, para existir no escopo inteiro
+    let fotoFinal = null;
+
+    if (foto && foto.files && foto.files.length > 0) {
+        try {
+            fotoFinal = await convertFileToBase64(foto.files[0]);
+        } catch (err) {
+            console.error("Erro ao converter foto:", err);
+            alert("Erro ao processar o arquivo de imagem.");
+            return;
+        }
+    }
+
+    const novoDiario = {
+        foto: fotoFinal,
+        descricao: descricao,
+        data: data
+    };
+
+    try {
+        const response = await fetchAutenticado('/diario/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(novoDiario)
+        });
+
+        if (response.ok) {
+            document.getElementById('form-diario').reset();
+            alert('Rotina cadastrada com sucesso!');
+            arregarDiarioAdmin();
+        } else {
+            alert('Erro ao cadastrar rotina.');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+    }
+
+
+}
+
+// ==========================================
+// GESTÃO DO DIA-A-DIA
+// ==========================================
+
+async function carregarDiarioAdmin() {
+    try {
+        const response = await fetchAutenticado('/diario', {
+            method: 'GET'
+        });
+
+        if (response.ok) {
+            const diarios = await response.json();
+            const container = document.getElementById('lista-diario');
+            container.innerHTML = '';
+
+            if (diarios.length === 0) {
+                container.innerHTML = '<p style="color: var(--cor-texto-claro); grid-column: 1 / -1; text-align: center;">Nenhuma rotina publicada ainda.</p>';
+                return;
+            }
+
+            diarios.forEach(post => {
+                const div = document.createElement('div');
+                div.className = 'request-card'; // Reaproveitando o estilo de cards de solicitação
+                
+                const imgSrc = post.foto && post.foto !== 'null' ? post.foto : 'assets/imgs/default-placeholder.jpeg';
+
+                div.innerHTML = `
+                    <div class="request-header">
+                        <span class="status-badge available">${post.data || ''}</span>
+                    </div>
+                    <div class="request-body" style="text-align: center;">
+                        <img src="${imgSrc}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--glass-border);">
+                        <p>${post.descricao || ''}</p>
+                    </div>
+                    <div class="request-actions">
+                        <button class="btn-danger" style="width: 100%; background-color: #e74c3c; border: none; padding: 10px; color: white; border-radius: 8px; cursor: pointer;" onclick="abrirModalDeletarDiario(${post.id})">
+                            <i class="fas fa-trash"></i> APAGAR POST
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar lista do dia-a-dia:', error);
+    }
+}
+
+function abrirModalDeletarDiario(id) {
+    document.getElementById('deletar-diario-id').value = id;
+    document.getElementById('modal-deletar-diario').classList.remove('hide');
+    document.querySelector('.admin-content').classList.add('no-scroll');
+}
+
+function fecharModalDeletarDiario() {
+    document.getElementById('modal-deletar-diario').classList.add('hide');
+    document.querySelector('.admin-content').classList.remove('no-scroll');
+}
+
+async function deletarDiarioConfirmado() {
+    const id = document.getElementById('deletar-diario-id').value;
+
+    try {
+        const response = await fetchAutenticado(`/diario/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (response.ok) {
+            alert('Post apagado com sucesso!');
+            fecharModalDeletarDiario();
+            carregarDiarioAdmin(); // Recarrega a tela para o item sumir
+        } else {
+            alert('Erro ao apagar o post.');
+        }
+    } catch (error) {
+        console.error('Erro na requisição de deleção:', error);
     }
 }

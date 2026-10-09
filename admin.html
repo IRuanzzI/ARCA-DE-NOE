@@ -92,15 +92,11 @@
                 </div>
                 <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
             </div>
-            <div class="form-panel">
-                <form action="#">
+            <div class="form-panel" id="form-panel-diario">
+                <form action="#" id="form-diario">
                     <div class="form-group">
-                        <label for="atividade">Título</label>
-                        <input type="text" id="atividade" name="atividade">
-                    </div>
-                    <div class="form-group">
-                        <label for="descricao-atividade">Descrição da Rotina</label>
-                        <textarea id="descricao-atividade" rows="4"></textarea>
+                        <label for="descricao-atividade" required>Descrição da Rotina</label>
+                        <textarea id="descricao-atividade" rows="4" required></textarea>
                     </div>
                     <div class="form-group form-grid">
                         <div>
@@ -109,11 +105,40 @@
                         </div>
                         <div>
                             <label for="fotos">Fotos (Múltiplas)</label>
-                            <input type="file" id="fotos" name="fotos" multiple class="file-input">
+                            <input type="file" id="fotos" name="fotos" multiple class="file-input" required>
                         </div>
                     </div>
-                    <button type="button" class="btn-acao"><i class="fas fa-upload"></i> PUBLICAR NO SITE</button>
+                    <button type="button" onclick="uploadDiario()" class="btn-acao"><i class="fas fa-upload"></i>
+                        PUBLICAR NO SITE</button>
                 </form>
+            </div>
+            <div class="section-header" style="margin-top: 4rem;">
+                <h3>Posts Publicados no Dia-a-Dia</h3>
+                <p>Visualize e gerencie as rotinas que já estão no site.</p>
+            </div>
+            <!-- Container onde o JavaScript vai injetar os posts -->
+            <div class="card-list" id="lista-diario"></div>
+
+            <!-- Modal de Confirmação de Exclusão -->
+            <div id="modal-deletar-diario" class="modal-overlay hide">
+                <div class="modal-content modal-edita-animal" style="text-align: center;">
+                    <div class="modal-header">
+                        <h2>Confirmar Exclusão</h2>
+                        <button onclick="fecharModalDeletarDiario()" class="btn-fechar-modal">&times;</button>
+                    </div>
+                    <p style="color: var(--cor-texto-claro); margin-bottom: 20px;">Tem certeza absoluta de que deseja
+                        apagar esta publicação e sua foto?</p>
+
+                    <input type="hidden" id="deletar-diario-id">
+
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button onclick="deletarDiarioConfirmado()"
+                            style="background-color: #e74c3c; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 10px; cursor: pointer; font-weight: 600;">Sim,
+                            Apagar</button>
+                        <button onclick="fecharModalDeletarDiario()"
+                            style="background-color: transparent; border: 1px solid var(--glass-border); color: var(--cor-texto); padding: 0.8rem 1.5rem; border-radius: 10px; cursor: pointer;">Cancelar</button>
+                    </div>
+                </div>
             </div>
         </section>
 

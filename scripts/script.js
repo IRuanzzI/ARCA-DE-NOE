@@ -1,8 +1,56 @@
- const API_URL = "http://localhost:8080"
+const API_URL = "http://localhost:8080"
+
+
+
+document.addEventListener('input', function (event) {
+    const elemento = event.target;
+
+    if (elemento.tagName === 'INPUT' || elemento.tagName === 'TEXTAREA') {
+
+        // Ignora arquivos, senhas, e-mails e a classe de exceção
+        if (elemento.type === 'file' ||
+            elemento.type === 'password' ||
+            elemento.type === 'email' ||
+            elemento.classList.contains('ignorar-maiusculo')) {
+            return;
+        }
+
+        const tiposValidos = ['text', 'search', 'url', 'tel'];
+        if (elemento.tagName === 'TEXTAREA' || tiposValidos.includes(elemento.type)) {
+
+            const start = elemento.selectionStart;
+            const end = elemento.selectionEnd;
+
+            elemento.value = elemento.value.toUpperCase();
+
+            elemento.setSelectionRange(start, end);
+        }
+    }
+
+    const formAdocao = document.querySelector('.form-adocao form');
+    if (formAdocao) {
+        formAdocao.addEventListener('submit', (e) => enviarSolicitacao(e, 'Adoção'));
+    }
+
+    // Adiciona o ouvinte para o formulário de APADRINHAMENTO
+    const formApadrinha = document.querySelector('.form-apadrinha form');
+    if (formApadrinha) {
+        formApadrinha.addEventListener('submit', (e) => enviarSolicitacao(e, 'Apadrinhamento'));
+    }
+});
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
 
-   
+
+
+    carregarAnimaisPublico()
+    carregarDiaADia();
+
+
+
+
 
     const carousels = document.querySelectorAll('.carousel');
 
@@ -191,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalImagemAnimal && imgAmpliada) {
         imagensCards.forEach(imagem => {
             imagem.style.cursor = 'pointer';
-            
+
             // Removemos eventos antigos duplicados para evitar conflitos
             imagem.replaceWith(imagem.cloneNode(true));
         });
@@ -204,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (cartao) {
                     const h3 = cartao.querySelector('h3');
                     const nomeAnimal = h3 ? h3.innerText : 'Animal';
-                    
+
                     // Usa diretamente a propriedade src da imagem clicada
                     imgAmpliada.src = imagem.src;
                     tituloModalAnimal.innerText = nomeAnimal;
@@ -281,7 +329,7 @@ async function entrar() {
             if (data.cargo) localStorage.setItem('cargo', data.cargo);
             if (data.id) localStorage.setItem('usuario.id', data.id);
             window.location.href = 'admin.html'
-            
+
 
         } else {
             mensagemErro.textContent = "Usuário ou senha incorretos!";
@@ -289,5 +337,290 @@ async function entrar() {
     } catch (erro) {
         console.error("Erro na requisição:", erro);
         mensagemErro.textContent = "Erro ao conectar com o servidor. Tente novamente.";
+    }
+}
+
+async function carregarDiaADia() {
+    try {
+        const response = await fetch(`${API_URL}/diario`);
+
+        if (response.ok) {
+            const diarios = await response.json();
+            renderizarCarrosselDiaADia(diarios);
+        } else {
+            console.error('Erro ao buscar publicações do Dia-a-Dia.');
+        }
+    } catch (error) {
+        console.error('Erro de conexão com a API:', error);
+    }
+}
+
+function renderizarCarrosselDiaADia(diarios) {
+    const carousel = document.getElementById('dia-a-dia-dinamico');
+    if (!carousel) return;
+
+    // Salva os botões antes de limpar o carrossel
+    const btnPrev = carousel.querySelector('.prev');
+    const btnNext = carousel.querySelector('.next');
+
+    // Limpa o conteúdo atual (remove o HTML estático)
+    carousel.innerHTML = '';
+
+    if (diarios.length === 0) {
+        carousel.innerHTML = '<p style="color: var(--cor-texto-claro); text-align: center; padding: 2rem;">Nenhuma atualização recente no momento.</p>';
+        return;
+    }
+
+
+    diarios.forEach((post, index) => {
+        const div = document.createElement('div');
+
+        div.className = `carousel-item ${index === 0 ? 'active' : ''}`;
+
+
+        const imgSrc = post.foto && post.foto !== 'null' ? post.foto : 'assets/imgs/default-placeholder.jpeg';
+
+
+        div.innerHTML = `
+            <img src="${imgSrc}" alt="${post.nome || 'Dia-a-dia'}">
+            <p>${post.descricao || 'Rotina de amor no abrigo.'}</p>
+        `;
+
+        carousel.appendChild(div);
+    });
+
+
+    if (diarios.length > 1) {
+        if (btnPrev) carousel.appendChild(btnPrev);
+        if (btnNext) carousel.appendChild(btnNext);
+
+
+        ativarNavegacaoCarrossel(carousel);
+    }
+}
+
+function ativarNavegacaoCarrossel(carousel) {
+    const items = carousel.querySelectorAll('.carousel-item');
+    const btnPrev = carousel.querySelector('.prev');
+    const btnNext = carousel.querySelector('.next');
+    let currentIndex = 0;
+
+
+    const newPrev = btnPrev.cloneNode(true);
+    const newNext = btnNext.cloneNode(true);
+    btnPrev.replaceWith(newPrev);
+    btnNext.replaceWith(newNext);
+
+
+    newPrev.addEventListener('click', () => {
+        items[currentIndex].classList.remove('active');
+        currentIndex = (currentIndex === 0) ? items.length - 1 : currentIndex - 1;
+        items[currentIndex].classList.add('active');
+    });
+
+
+    newNext.addEventListener('click', () => {
+        items[currentIndex].classList.remove('active');
+        currentIndex = (currentIndex === items.length - 1) ? 0 : currentIndex + 1;
+        items[currentIndex].classList.add('active');
+    });
+}
+
+// ==========================================
+// CARREGAR ANIMAIS NA LANDING PAGE
+// ==========================================
+async function carregarAnimaisPublico() {
+    try {
+        // Faz a requisição pública (sem fetchAutenticado)
+        const response = await fetch(`${API_URL}/animal`);
+
+        if (response.ok) {
+            const animais = await response.json();
+
+            // Filtra apenas os animais que estão marcados como disponíveis (true ou null/assumido true)
+            const animaisDisponiveis = animais.filter(animal => animal.disponivel !== false);
+
+            renderizarCarrosselAnimais(animaisDisponiveis);
+            atualizarSelectsFormularios(animaisDisponiveis);
+        } else {
+            console.error('Erro ao buscar a lista de animais.');
+        }
+    } catch (error) {
+        console.error('Erro de conexão com a API:', error);
+    }
+}
+
+function renderizarCarrosselAnimais(animais) {
+    const trackAdocao = document.querySelector('#adote .carousel-track');
+    const trackApadrinhe = document.querySelector('#apadrinhe .carousel-track');
+
+    if (!trackAdocao || !trackApadrinhe) return;
+
+    trackAdocao.innerHTML = '';
+    trackApadrinhe.innerHTML = '';
+
+    if (animais.length === 0) {
+        const msg = '<p style="color: var(--cor-texto-claro); text-align: center; width: 100%;">Nenhum animal disponível no momento.</p>';
+        trackAdocao.innerHTML = msg;
+        trackApadrinhe.innerHTML = msg;
+        return;
+    }
+
+    animais.forEach(animal => {
+        const prontuario = animal.prontuario || {};
+        const idade = prontuario.idade || 'Idade não inf.';
+        const vacinas = (prontuario.vacinas && prontuario.vacinas.length > 0) ? prontuario.vacinas.join(', ') : 'Não informado';
+
+        let dataEntrada = 'Não informada';
+        if (prontuario.dataEntrada) {
+            dataEntrada = prontuario.dataEntrada.split('-').reverse().join('/');
+        }
+
+        const foto = animal.foto && animal.foto !== 'null' ? animal.foto : 'assets/imgs/default-placeholder.jpeg';
+
+        const cardBaseHTML = `
+            <img src="${foto}" alt="${animal.nome}">
+            <div class="dados-animal">
+                <h3>${animal.nome}</h3>
+                <p><i class="fas fa-calendar-alt"></i> ENTRADA: ${dataEntrada}</p>
+                <p><i class="fas fa-birthday-cake"></i> ${idade}</p>
+                <p><i class="fas fa-syringe"></i> ${vacinas}</p>
+        `;
+
+        // ADICIONAMOS O data-id="${animal.id}" NOS BOTÕES AQUI!
+        const articleAdocao = document.createElement('article');
+        articleAdocao.className = 'card-animal';
+        articleAdocao.innerHTML = cardBaseHTML + `
+                <button class="btn-adotar" data-id="${animal.id}">ADOTAR ${animal.nome.toUpperCase()}</button>
+            </div>
+        `;
+        trackAdocao.appendChild(articleAdocao);
+
+        const articleApadrinhe = document.createElement('article');
+        articleApadrinhe.className = 'card-animal';
+        articleApadrinhe.innerHTML = cardBaseHTML + `
+                <button class="btn-apadrinhar" data-id="${animal.id}">APADRINHAR ${animal.nome.toUpperCase()}</button>
+            </div>
+        `;
+        trackApadrinhe.appendChild(articleApadrinhe);
+    });
+
+    reativarEventosDinamicos();
+}
+
+function atualizarSelectsFormularios(animais) {
+    const selectAdocao = document.getElementById('animal-adocao');
+    const selectApadrinha = document.getElementById('animal-apadrinha');
+
+    // Agora o "value" do select será o ID do animal
+    const optionsHTML = '<option value="">Selecione...</option>' +
+        animais.map(animal => `<option value="${animal.id}">${animal.nome}</option>`).join('');
+
+    if (selectAdocao) selectAdocao.innerHTML = optionsHTML;
+    if (selectApadrinha) selectApadrinha.innerHTML = optionsHTML;
+}
+
+function reativarEventosDinamicos() {
+    const formAdocao = document.querySelector('.form-adocao');
+    const formApadrinha = document.querySelector('.form-apadrinha');
+    const selectAnimalAdocao = document.getElementById('animal-adocao');
+    const selectAnimalApadrinha = document.getElementById('animal-apadrinha');
+
+    // Captura o ID diretamente do botão clicado
+    document.querySelectorAll('.btn-adotar').forEach(botao => {
+        botao.addEventListener('click', (evento) => {
+            const animalId = evento.target.getAttribute('data-id');
+            if (selectAnimalAdocao) selectAnimalAdocao.value = animalId;
+            formAdocao.classList.remove('hide');
+            formAdocao.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    document.querySelectorAll('.btn-apadrinhar').forEach(botao => {
+        botao.addEventListener('click', (evento) => {
+            const animalId = evento.target.getAttribute('data-id');
+            if (selectAnimalApadrinha) selectAnimalApadrinha.value = animalId;
+            formApadrinha.classList.remove('hide');
+            formApadrinha.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    const modalImagemAnimal = document.getElementById('modal-imagem-animal');
+    const imgAmpliada = document.getElementById('img-ampliada');
+    const tituloModalAnimal = document.getElementById('titulo-modal-animal');
+
+    document.querySelectorAll('.card-animal img').forEach(imagem => {
+        imagem.style.cursor = 'pointer';
+        imagem.addEventListener('click', (evento) => {
+            const cartao = evento.target.closest('.card-animal');
+            if (cartao) {
+                imgAmpliada.src = imagem.src;
+                tituloModalAnimal.innerText = cartao.querySelector('h3').innerText;
+                modalImagemAnimal.classList.remove('hide');
+                document.body.classList.add('no-scroll');
+            }
+        });
+    });
+}
+
+// ==========================================
+// ENVIO DE SOLICITAÇÕES (ADOÇÃO / APADRINHAMENTO)
+// ==========================================
+
+async function enviarSolicitacao(evento, tipoFormulario) {
+    evento.preventDefault(); // Impede o recarregamento da página
+
+    const form = evento.target;
+    const btnSubmit = form.querySelector('button[type="submit"]');
+
+    // 1. TRAVA DE SEGURANÇA: Se o botão já estiver desativado, ignora os próximos cliques
+    if (btnSubmit.disabled) return;
+    
+    // 2. Desativa o botão e altera o texto para dar feedback visual
+    btnSubmit.disabled = true;
+    const textoOriginal = btnSubmit.innerText;
+    btnSubmit.innerText = "ENVIANDO...";
+
+    const nome = form.querySelector('[name="nome"]').value.trim();
+    const email = form.querySelector('[name="email"]').value.trim();
+    const telefone = form.querySelector('[name="telefone"]').value.trim();
+    const animalId = form.querySelector('[name="animal"]').value;
+
+    if (!animalId) {
+        alert("Por favor, selecione o animal desejado na lista.");
+        // Restaura o botão se der erro de validação
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = textoOriginal;
+        return;
+    }
+
+    const novaSolicitacao = {
+        nome: nome,
+        email: email,
+        telefone: telefone,
+        tipo: tipoFormulario
+    };
+
+    try {
+        const response = await fetch(`${API_URL}/animal/solicitacao/${animalId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(novaSolicitacao)
+        });
+
+        if (response.ok) {
+            alert(`Sua solicitação de ${tipoFormulario} foi enviada com sucesso! Entraremos em contato em breve.`);
+            form.reset(); 
+            form.closest('.hide').classList.add('hide'); 
+        } else {
+            alert("Erro ao enviar a solicitação. Tente novamente mais tarde.");
+        }
+    } catch (error) {
+        console.error("Erro na comunicação com a API:", error);
+    } finally {
+        // 3. O bloco "finally" executa sempre no final (dando certo ou erro)
+        // Isso garante que o botão volte ao normal para usos futuros
+        btnSubmit.disabled = false;
+        btnSubmit.innerText = textoOriginal;
     }
 }
