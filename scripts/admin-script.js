@@ -1,3 +1,10 @@
+const token = localStorage.getItem('jwt_token');
+const cargo = localStorage.getItem('cargo');
+
+if (!token) {
+    window.location.replace('index.html');
+}
+
 const API_URL = "http://localhost:8080"
 
 document.addEventListener('input', function (event) {
@@ -43,7 +50,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const cargoLogg = localStorage.getItem('cargo');
     cargo.innerText = cargoLogg;
 
+
+
     carregarDiarioAdmin();
+    solicitacoes();
+    carregarFinanceiro();
+
+    const btnNovoLancamento = document.getElementById('btnNovoLancamento');
+    const btnCancelarLancamento = document.getElementById('cancelarLancamento');
+    const formFinanceiro = document.getElementById('formulario-financeiro');
+
+    if (btnNovoLancamento && formFinanceiro) {
+        btnNovoLancamento.addEventListener('click', () => {
+            formFinanceiro.classList.remove('hide');
+            // Por padrão, colocar a data de hoje
+            document.getElementById('fin-data').value = new Date().toISOString().split('T')[0];
+        });
+    }
+
+    if (btnCancelarLancamento && formFinanceiro) {
+        btnCancelarLancamento.addEventListener('click', () => {
+            formFinanceiro.classList.add('hide');
+            document.getElementById('form-registro-financeiro').reset();
+        });
+    }
+
+    const formRegFinanceiro = document.getElementById('form-registro-financeiro');
+    if (formRegFinanceiro) {
+        formRegFinanceiro.addEventListener('submit', novoLancamento);
+    }
+
+    // Eventos de Filtro
+    const filtroTipo = document.getElementById('filtro-tipo-financeiro');
+    const filtroMes = document.getElementById('filtro-mes-financeiro');
+
+    if (filtroTipo) filtroTipo.addEventListener('change', aplicarFiltrosFinanceiros);
+
+    if (filtroMes) {
+        filtroMes.addEventListener('change', aplicarFiltrosFinanceiros);
+        // --> ADICIONA ESTAS DUAS LINHAS PARA DEFINIR O MÊS ATUAL
+        const dataAtual = new Date();
+        const mesAnoFormatoString = `${dataAtual.getFullYear()}-${String(dataAtual.getMonth() + 1).padStart(2, '0')}`;
+        filtroMes.value = mesAnoFormatoString;
+    }
+
 
 
 
@@ -73,7 +123,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     dashCards.forEach(card => {
         card.addEventListener('click', () => {
-            alternarSecao(card.getAttribute('data-target'));
+            const alvo = card.getAttribute('data-target');
+
+
+            if (alvo) {
+                alternarSecao(alvo);
+            }
         });
     });
 
@@ -117,8 +172,33 @@ document.addEventListener('DOMContentLoaded', () => {
 async function fetchAutenticado(endpoint, options = {}) {
     const token = localStorage.getItem('jwt_token');
     options.headers = options.headers || {};
-    if (token) options.headers['Authorization'] = `Bearer ${token}`;
-    return fetch(`${API_URL}${endpoint}`, options);
+    
+    if (token) {
+        options.headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}${endpoint}`, options);
+
+       
+        if (response.status === 401 || response.status === 403) {
+            alert('A sua sessão expirou ou não tem permissões. Por favor, faça login novamente.');
+            
+            // Limpa os dados falsos/expirados
+            localStorage.removeItem('jwt_token');
+            localStorage.removeItem('nome');
+            localStorage.removeItem('cargo');
+            
+            // Redireciona para o início
+            window.location.replace('index.html');
+            return null;
+        }
+
+        return response;
+    } catch (error) {
+        console.error("Erro na comunicação com o servidor:", error);
+        throw error;
+    }
 }
 
 async function addCad(e) {
@@ -407,8 +487,42 @@ function deletar(id) {
     document.querySelector('.admin-content').classList.add('no-scroll');
 }
 
+function abrirModalDeletarSolicitacao(id) {
+    document.getElementById('solicitacoes').value = id;
+    document.getElementById('modal-deletar-solicitacao').classList.remove('hide');
+    document.querySelector('.admin-content').classList.add('no-scroll');
+
+}
+
+async function deletarSolicitacaoConfirmado() {
+    const id = document.getElementById('solicitacoes').value;
+
+    try {
+        const response = await fetchAutenticado(`/animal/solicitacoes/${id}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (response.ok) {
+            alert('Solicitação apagada com sucesso!');
+            fecharModalDeletarSolicitacao();
+            solicitacoes();
+        } else {
+            alert('Erro ao apagar a solicitação.');
+        }
+    } catch (error) {
+        console.error('Erro na requisição:', error);
+    }
+
+}
+
 function nDeletar() {
     document.getElementById('modal-deletar').classList.add('hide');
+    document.querySelector('.admin-content').classList.remove('no-scroll');
+}
+
+function fecharModalDeletarSolicitacao() {
+    document.getElementById('modal-deletar-solicitacao').classList.add('hide');
     document.querySelector('.admin-content').classList.remove('no-scroll');
 }
 
@@ -705,13 +819,13 @@ async function salvarMidiaProntuario(dadosParciais) {
 
 
 async function uploadDiario() {
-    
+
     const form = document.getElementById('form-diario');
 
-  
+
     if (!form.checkValidity()) {
-        form.reportValidity(); 
-        return; 
+        form.reportValidity();
+        return;
     }
 
 
@@ -784,7 +898,7 @@ async function carregarDiarioAdmin() {
             diarios.forEach(post => {
                 const div = document.createElement('div');
                 div.className = 'request-card'; // Reaproveitando o estilo de cards de solicitação
-                
+
                 const imgSrc = post.foto && post.foto !== 'null' ? post.foto : 'assets/imgs/default-placeholder.jpeg';
 
                 div.innerHTML = `
@@ -839,4 +953,273 @@ async function deletarDiarioConfirmado() {
     } catch (error) {
         console.error('Erro na requisição de deleção:', error);
     }
+}
+
+///SOLICITAÇÕES
+
+async function solicitacoes() {
+
+    const cardSolicitacao = document.querySelector('#solicitacoes .card-list');
+
+    try {
+        const response = await fetchAutenticado(`/animal/solicitacoes`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (response.ok) {
+
+
+
+            const listaSolicitacoes = await response.json();
+
+
+            cardSolicitacao.innerHTML = '';
+
+            const badgeSolicitacoes = document.querySelector('.nav-btn[data-target="solicitacoes"] .badge');
+
+
+            if (badgeSolicitacoes) {
+
+                badgeSolicitacoes.innerText = listaSolicitacoes.length;
+
+
+                badgeSolicitacoes.style.display = listaSolicitacoes.length > 0 ? 'inline-block' : 'none';
+            }
+
+
+
+            listaSolicitacoes.forEach(solicitacao => {
+
+
+                const cardHtml = document.createElement('div');
+                cardHtml.className = 'request-card';
+
+                cardHtml.innerHTML = `
+                    <div class="solicitacao-header">
+                        <span class="status-badge available">${solicitacao.animal.nome || 'N/A'}</span>
+                    </div>
+                    <div class="request-body" style="text-align: left; margin-top: 15px;">
+                        <p><strong>Candidato:</strong> ${solicitacao.nome || ''}</p>
+                        <p><strong>E-mail:</strong> ${solicitacao.email || ''}</p>
+                        <p><strong>WhatsApp:</strong> ${solicitacao.telefone || ''}</p>
+                        <p><strong>Pedido:</strong> ${solicitacao.tipo || ''}</p>
+                    </div>
+                    <div class="request-actions-solicitacoes">
+                       <button class="btn-danger" onclick="abrirModalDeletarSolicitacao(${solicitacao.id})"><i class="fas fa-trash"></i> EXCLUIR</button>
+                    </div>
+                   
+                `;
+                cardSolicitacao.appendChild(cardHtml);
+
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar solicitações:', error);
+    }
+}
+
+//FINANCEIRO
+let dadosFinanceirosGlobal = [];
+
+// ----------------------------------------------------
+// 1. CARREGAR E RENDERIZAR
+// ----------------------------------------------------
+async function carregarFinanceiro() {
+    try {
+        const response = await fetchAutenticado(`/financeiro/lancamentos`, { method: 'GET' });
+
+        if (response.ok) {
+            dadosFinanceirosGlobal = await response.json();
+            console.log(dadosFinanceirosGlobal)
+            aplicarFiltrosFinanceiros();
+        } else {
+            console.error('Erro ao carregar dados financeiros.');
+        }
+    } catch (error) {
+        console.error('Erro na requisição de carregamento:', error);
+    }
+}
+
+function aplicarFiltrosFinanceiros() {
+    const filtroTipo = document.getElementById('filtro-tipo-financeiro').value.toUpperCase(); // Garante que fica em maiúsculas
+    const mesFiltro = document.getElementById('filtro-mes-financeiro').value;
+
+    let dadosDoMes = dadosFinanceirosGlobal || [];
+
+    // 1. Filtra PRIMEIRO pelo mês (aplica-se ao dashboard e à tabela)
+    if (mesFiltro) {
+        dadosDoMes = dadosDoMes.filter(item => {
+            if (!item.data) return false;
+            return item.data.includes(mesFiltro); // O includes resolve problemas se a data vier com horas (ex: 2024-03-20T10:00:00)
+        });
+    }
+
+    // 2. Calcula o resumo do MÊS para os cartões (antes de filtrar o tipo)
+    calcularResumoFinanceiro(dadosDoMes);
+
+    // 3. Filtra DEPOIS pelo Tipo (aplica-se APENAS à tabela)
+    let dadosParaTabela = dadosDoMes;
+
+    if (filtroTipo !== 'TODOS') {
+        dadosParaTabela = dadosParaTabela.filter(item =>
+            item.tipo && item.tipo.toUpperCase() === filtroTipo
+        );
+    }
+
+    // 4. Renderiza a tabela com o resultado final
+    renderizarTabelaFinanceiro(dadosParaTabela);
+}
+
+function renderizarTabelaFinanceiro(dados) {
+    const tbody = document.querySelector('#tabela-financeiro tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    if (dados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum lançamento encontrado.</td></tr>';
+        return;
+    }
+
+    dados.forEach(lancamento => {
+        const tr = document.createElement('tr');
+
+        // Formatação de data (BR)
+        const dataArr = lancamento.data.split('-');
+        const dataFormatada = `${dataArr[2]}/${dataArr[1]}/${dataArr[0]}`;
+
+        // Formatação de Moeda
+        const valorFormatado = parseFloat(lancamento.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        // Estilo baseado no tipo
+        const classeBadge = lancamento.tipo === 'ENTRADA' ? 'badge-entrada' : 'badge-saida';
+        const iconeTipo = lancamento.tipo === 'ENTRADA' ? '<i class="fas fa-arrow-up"></i>' : '<i class="fas fa-arrow-down"></i>';
+        const corValor = lancamento.tipo === 'ENTRADA' ? '#2ecc71' : '#e74c3c';
+
+        // Comprovativo
+        const botaoComprovativo = lancamento.comprovante && lancamento.comprovante !== 'null'
+            ? `<a href="${lancamento.comprovante}" download class="btn-icon" style="display:inline-flex; align-items:center; justify-content:center; background: rgba(75, 192, 232, 0.2); color: var(--cor-primaria);" title="Baixar"><i class="fas fa-download"></i></a>`
+            : '<span style="color: var(--cor-texto-claro); font-size: 0.8rem;">N/A</span>';
+
+        tr.innerHTML = `
+            <td>${dataFormatada}</td>
+            <td><strong>${lancamento.descricao}</strong></td>
+            <td><span class="${classeBadge}">${iconeTipo} ${lancamento.tipo}</span></td>
+            <td style="color: ${corValor}; font-weight: bold;">${valorFormatado}</td>
+            <td>${botaoComprovativo}</td>
+            <td class="table-actions">
+                <button class="btn-icon delete" onclick="apagarLancamento(${lancamento.id})" title="Excluir"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function calcularResumoFinanceiro(dados) {
+    let entradas = 0;
+    let saidas = 0;
+
+    dados.forEach(item => {
+        if (item.tipo === 'ENTRADA') entradas += parseFloat(item.valor);
+        if (item.tipo === 'SAIDA') saidas += parseFloat(item.valor);
+    });
+
+    const saldo = entradas - saidas;
+
+    document.getElementById('total-entradas').innerText = entradas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    document.getElementById('total-saidas').innerText = saidas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    document.getElementById('saldo-total').innerText = saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+
+// ----------------------------------------------------
+// 2. CRIAR E EXCLUIR LANÇAMENTOS
+// ----------------------------------------------------
+async function novoLancamento(e) {
+    e.preventDefault();
+
+    // 1. Validar cargo (opcional, dependendo de quem mexe no dinheiro)
+    const cargo = localStorage.getItem('cargo');
+    if (cargo !== 'ADMIN') {
+        alert('Apenas a Diretoria pode registar lançamentos financeiros.');
+        return;
+    }
+
+    // 2. Pegar valores corretamente
+    const valorStr = document.getElementById('fin-valor').value;
+    const tipoVal = document.getElementById('fin-tipo').value;
+    const dataVal = document.getElementById('fin-data').value;
+    const descVal = document.getElementById('fin-descricao').value.trim();
+    const arquivoInput = document.getElementById('fin-comprovante');
+
+    const valorFloat = parseFloat(valorStr);
+
+    if (isNaN(valorFloat) || valorFloat <= 0) {
+        alert("O valor inserido é inválido.");
+        return;
+    }
+
+    let fotoFinal = null;
+    if (arquivoInput && arquivoInput.files && arquivoInput.files.length > 0) {
+        try {
+            fotoFinal = await convertFileToBase64(arquivoInput.files[0]);
+        } catch (err) {
+            console.error("Erro ao converter comprovativo:", err);
+            alert("Erro ao processar o arquivo.");
+            return;
+        }
+    }
+
+    const lancamento = {
+        valor: valorFloat,
+        tipo: tipoVal,
+        data: dataVal,
+        descricao: descVal,
+        comprovante: fotoFinal // Certifica-te que o teu backend espera este nome ('comprovante' ou 'fotoFinal')
+    };
+
+    try {
+        const response = await fetchAutenticado('/financeiro/lancamento', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(lancamento)
+        });
+
+        if (response.ok) {
+            alert('Lançamento registado com sucesso!');
+            document.getElementById('formulario-financeiro').classList.add('hide');
+            document.getElementById('form-registro-financeiro').reset();
+            carregarFinanceiro(); // Recarrega os dados do backend
+        } else {
+            alert('Erro ao registar o lançamento.');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+    }
+}
+
+async function apagarLancamento(id) {
+    if (!confirm("Tem a certeza que deseja eliminar este registo financeiro? Esta ação não pode ser desfeita.")) return;
+
+    try {
+
+        const response = await fetchAutenticado(`/financeiro/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            carregarFinanceiro(); 
+        } else {
+            alert("Erro ao apagar o registo.");
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+    }
+}
+
+function sairDoSistema() {
+    document.querySelector('.btn-sair');
+    localStorage.clear();
+    window.location.href = 'index.html';
 }

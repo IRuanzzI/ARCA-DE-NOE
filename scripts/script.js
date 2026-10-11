@@ -568,15 +568,14 @@ function reativarEventosDinamicos() {
 // ==========================================
 
 async function enviarSolicitacao(evento, tipoFormulario) {
-    evento.preventDefault(); // Impede o recarregamento da página
+    evento.preventDefault(); 
 
     const form = evento.target;
     const btnSubmit = form.querySelector('button[type="submit"]');
 
-    // 1. TRAVA DE SEGURANÇA: Se o botão já estiver desativado, ignora os próximos cliques
+
     if (btnSubmit.disabled) return;
     
-    // 2. Desativa o botão e altera o texto para dar feedback visual
     btnSubmit.disabled = true;
     const textoOriginal = btnSubmit.innerText;
     btnSubmit.innerText = "ENVIANDO...";
@@ -588,7 +587,6 @@ async function enviarSolicitacao(evento, tipoFormulario) {
 
     if (!animalId) {
         alert("Por favor, selecione o animal desejado na lista.");
-        // Restaura o botão se der erro de validação
         btnSubmit.disabled = false;
         btnSubmit.innerText = textoOriginal;
         return;
@@ -618,9 +616,10 @@ async function enviarSolicitacao(evento, tipoFormulario) {
     } catch (error) {
         console.error("Erro na comunicação com a API:", error);
     } finally {
-        // 3. O bloco "finally" executa sempre no final (dando certo ou erro)
-        // Isso garante que o botão volte ao normal para usos futuros
+  
         btnSubmit.disabled = false;
         btnSubmit.innerText = textoOriginal;
     }
 }
+
+

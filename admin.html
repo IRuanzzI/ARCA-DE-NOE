@@ -6,8 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PAINEL DE GESTÃO | Arca de Noé</title>
     <link rel="stylesheet" href="styles/style.css">
-    <link rel="stylesheet" href="styles/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        const userToken = localStorage.getItem('jwt_token');
+
+
+        if (!userToken || userToken === 'null' || userToken === 'undefined' || userToken.trim() === '') {
+
+            window.location.replace('index.html');
+        } else {
+
+            document.write('<style>body { display: flex !important; }</style>');
+        }
+    </script>
+
+    <style>
+        body {
+            display: none;
+        }
+    </style>
+
 </head>
 
 <body class="admin-body">
@@ -21,13 +39,14 @@
             <button class="nav-btn active" data-target="dashboard"><i class="fas fa-th-large"></i> Dashboard</button>
             <button class="nav-btn" data-target="dia-a-dia"><i class="fas fa-camera-retro"></i> Dia-a-Dia</button>
             <button class="nav-btn" data-target="solicitacoes"><i class="fas fa-envelope-open-text"></i> Solicitações
-                <span class="badge">3</span></button>
+                <span class="badge" id="badge-contador-solicitacoes">0</span>
+            </button>
             <button class="nav-btn" data-target="animais"><i class="fas fa-dog"></i> Prontuários</button>
             <button class="nav-btn" data-target="doacoes"><i class="fas fa-donate"></i> Financeiro</button>
             <button class="nav-btn" data-target="estrelinhas"><i class="fas fa-star"></i> Estrelinhas</button>
         </nav>
         <div class="sidebar-footer">
-            <button onclick="window.location.href='index.html'" class="btn-sair"><i class="fas fa-sign-out-alt"></i>
+            <button onclick="sairDoSistema()" class="btn-sair"><i class="fas fa-sign-out-alt"></i>
                 SAIR DO SISTEMA</button>
         </div>
     </aside>
@@ -116,10 +135,8 @@
                 <h3>Posts Publicados no Dia-a-Dia</h3>
                 <p>Visualize e gerencie as rotinas que já estão no site.</p>
             </div>
-            <!-- Container onde o JavaScript vai injetar os posts -->
             <div class="card-list" id="lista-diario"></div>
 
-            <!-- Modal de Confirmação de Exclusão -->
             <div id="modal-deletar-diario" class="modal-overlay hide">
                 <div class="modal-content modal-edita-animal" style="text-align: center;">
                     <div class="modal-header">
@@ -145,26 +162,39 @@
         <section id="solicitacoes" class="admin-section hide">
             <div class="section-header flex-between">
                 <div>
-                    <h3>Solicitações de Adoção</h3>
-                    <p>Gerencie as fichas enviadas pelos adotantes.</p>
+                    <h3>Solicitações de Adoção || Apadrinhamento</h3>
+                    <p>Gerencie as fichas enviadas pelos interessados.</p>
                 </div>
                 <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
             </div>
             <div class="card-list">
                 <div class="request-card">
-                    <div class="request-header">
-                        <h4>Animal: <strong>Thor</strong></h4>
-                        <span class="status-badge pending">Aguardando Contato</span>
-                    </div>
+
                     <div class="request-body">
-                        <p><strong>Candidato:</strong> João Silva</p>
-                        <p><strong>E-mail:</strong> joao.silva@example.com</p>
-                        <p><strong>WhatsApp:</strong> (11) 98765-4321</p>
-                        <p><strong>Data:</strong> 03/10/2026</p>
+
                     </div>
                     <div class="request-actions">
-                        <button class="btn-success"><i class="fas fa-check"></i> Aprovar Perfil</button>
-                        <button class="btn-danger"><i class="fas fa-times"></i> Recusar</button>
+
+                    </div>
+                </div>
+            </div>
+            <div id="modal-deletar-solicitacao" class="modal-overlay hide">
+                <div class="modal-content modal-deleta-solicitacao" style="text-align: center;">
+                    <div class="modal-header">
+                        <h2>Confirmar Exclusão</h2>
+                        <button onclick="fecharModalDeletarSolicitacao()" class="btn-fechar-modal">&times;</button>
+                    </div>
+                    <p style="color: var(--cor-texto-claro); margin-bottom: 20px;">Tem certeza absoluta de que deseja
+                        apagar esta solicitação?</p>
+
+                    <input type="hidden" id="deletar-solicitacao-id">
+
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button onclick="deletarSolicitacaoConfirmado()"
+                            style="background-color: #e74c3c; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 10px; cursor: pointer; font-weight: 600;">Sim,
+                            Apagar</button>
+                        <button onclick="fecharModalDeletarSolicitacao()"
+                            style="background-color: transparent; border: 1px solid var(--glass-border); color: var(--cor-texto); padding: 0.8rem 1.5rem; border-radius: 10px; cursor: pointer;">Cancelar</button>
                     </div>
                 </div>
             </div>
@@ -408,29 +438,108 @@
             <div class="section-header flex-between">
                 <div>
                     <h3>Controle Financeiro e Doações</h3>
-                    <p>Entradas e apoio recebido.</p>
+                    <p>Entradas, saídas e gestão de recursos.</p>
                 </div>
                 <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
             </div>
+
+            <!-- PAINEL DE RESUMO (DASHBOARD FINANCEIRO) -->
+            <div class="dashboard-grid" style="margin-bottom: 2rem;">
+                <!-- Cartão de Entradas -->
+                <div class="dash-card" style="cursor: pointer;"
+                    onclick="document.getElementById('filtro-tipo-financeiro').value='ENTRADA'; aplicarFiltrosFinanceiros();">
+                    <div class="dash-icon green"><i class="fas fa-arrow-up"></i></div>
+                    <h4>Entradas (Mês)</h4>
+                    <p id="total-entradas" style="font-size: 1.5rem; font-weight: bold; color: #2ecc71;">R$ 0,00</p>
+                </div>
+
+                <!-- Cartão de Saídas -->
+                <div class="dash-card" style="cursor: pointer;"
+                    onclick="document.getElementById('filtro-tipo-financeiro').value='SAIDA'; aplicarFiltrosFinanceiros();">
+                    <div class="dash-icon orange"><i class="fas fa-arrow-down"></i></div>
+                    <h4>Saídas (Mês)</h4>
+                    <p id="total-saidas" style="font-size: 1.5rem; font-weight: bold; color: #e74c3c;">R$ 0,00</p>
+                </div>
+                <div class="dash-card">
+                    <div class="dash-icon blue"><i class="fas fa-wallet"></i></div>
+                    <h4>Saldo Atual</h4>
+                    <p id="saldo-total" style="font-size: 1.5rem; font-weight: bold; color: var(--cor-primaria);">R$
+                        0,00</p>
+                </div>
+            </div>
+
+            <!-- BARRA DE AÇÕES E FILTROS -->
+            <div class="search-bar" style="justify-content: space-between; align-items: center;">
+                <div style="display: flex; gap: 10px; width: 60%;">
+                    <select id="filtro-tipo-financeiro"
+                        style="width: auto; padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white;">
+                        <option value="todos">Todos os Lançamentos</option>
+                        <option value="ENTRADA">Apenas Entradas</option>
+                        <option value="SAIDA">Apenas Saídas</option>
+                    </select>
+                    <input type="month" id="filtro-mes-financeiro"
+                        style="padding: 0.8rem; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: white; color-scheme: dark;">
+                </div>
+                <button id="btnNovoLancamento"
+                    style="background-color: var(--cor-secundaria); padding: 0.8rem 1.5rem;"><i class="fas fa-plus"></i>
+                    Novo Lançamento</button>
+            </div>
+
+            <!-- FORMULÁRIO DE NOVO LANÇAMENTO (ESCONDIDO POR PADRÃO) -->
+            <section class="form-animal hide" id="formulario-financeiro">
+                <div class="form-card" style="margin-bottom: 2rem;">
+                    <h2><i class="fas fa-file-invoice-dollar"></i> REGISTRO FINANCEIRO </h2>
+                    <form id="form-registro-financeiro">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="fin-tipo">Tipo</label>
+                                <select id="fin-tipo" required>
+                                    <option value="ENTRADA">Entrada (Doação, Patrocínio...)</option>
+                                    <option value="SAIDA">Saída (Ração, Vet, Contas...)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="fin-valor">Valor (R$)</label>
+                                <input type="number" id="fin-valor" step="0.01" min="0.01" placeholder="0.00" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fin-data">Data</label>
+                                <input type="date" id="fin-data" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fin-comprovante">Comprovante (Opcional)</label>
+                                <input type="file" id="fin-comprovante" accept="image/*,.pdf">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="fin-descricao">Descrição (Doador / Motivo)</label>
+                                <input type="text" id="fin-descricao"
+                                    placeholder="Ex: Doação Maria Silva PIX / Compra Ração" required>
+                            </div>
+
+                            <div class="form-group full-width botoes-form">
+                                <button type="submit" class="btn-enviar">SALVAR LANÇAMENTO</button>
+                                <button type="button" class="btn-fechar" id="cancelarLancamento">Cancelar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TABELA DE LANÇAMENTOS -->
             <div class="table-container">
-                <table class="data-table">
+                <table class="data-table" id="tabela-financeiro">
                     <thead>
                         <tr>
                             <th>Data</th>
-                            <th>Doador</th>
-                            <th>Contato</th>
+                            <th>Descrição</th>
+                            <th>Tipo</th>
                             <th>Valor</th>
-                            <th>Status</th>
+                            <th>Comprovante</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>20/03/2024</td>
-                            <td><strong>Maria Oliveira</strong></td>
-                            <td>maria@example.com</td>
-                            <td class="valor-doacao">R$ 100,00</td>
-                            <td><span class="status-badge success">Confirmado</span></td>
-                        </tr>
+                        <!-- Preenchido via JavaScript -->
                     </tbody>
                 </table>
             </div>
