@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:8080"
+const API_URL = "https://arca-de-noe.rga.tec.br"
 
 
 
@@ -47,6 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     carregarAnimaisPublico()
     carregarDiaADia();
+
+    carregarEstrelinhas();
 
 
 
@@ -355,6 +357,40 @@ async function carregarDiaADia() {
     }
 }
 
+// Substitui a função antiga do carrossel por esta que é universal
+function configurarCarrossel(idCarrossel) {
+    const carousel = document.getElementById(idCarrossel);
+    if (!carousel) return;
+
+    const btnPrev = carousel.querySelector('.prev');
+    const btnNext = carousel.querySelector('.next');
+
+    if (btnPrev) {
+        btnPrev.onclick = () => moverCarrossel(-1, idCarrossel);
+    }
+    if (btnNext) {
+        btnNext.onclick = () => moverCarrossel(1, idCarrossel);
+    }
+}
+
+function moverCarrossel(direcao, idCarrossel) {
+    // Procura os itens APENAS dentro do carrossel em que o utilizador clicou
+    const items = document.querySelectorAll(`#${idCarrossel} .carousel-item`);
+    if (items.length === 0) return;
+
+    let indexAtivo = Array.from(items).findIndex(item => item.classList.contains('active'));
+    if (indexAtivo === -1) indexAtivo = 0;
+    
+    items[indexAtivo].classList.remove('active');
+    
+    let novoIndex = indexAtivo + direcao;
+    
+    if (novoIndex < 0) novoIndex = items.length - 1;
+    if (novoIndex >= items.length) novoIndex = 0;
+    
+    items[novoIndex].classList.add('active');
+}
+
 function renderizarCarrosselDiaADia(diarios) {
     const carousel = document.getElementById('dia-a-dia-dinamico');
     if (!carousel) return;
@@ -622,4 +658,64 @@ async function enviarSolicitacao(evento, tipoFormulario) {
     }
 }
 
+async function carregarEstrelinhas() {
+    try {
+        const response = await fetch(`${API_URL}/animal/estrelinhas`);
+
+        if (response.ok) {
+            const estrelinhas = await response.json();
+            const carousel = document.getElementById('estrelinhas-dinamico');
+            
+            const btnPrev = carousel.querySelector('.prev');
+            const btnNext = carousel.querySelector('.next');
+
+            // Limpa os itens antigos
+            const itensAntigos = carousel.querySelectorAll('.carousel-item');
+            itensAntigos.forEach(item => item.remove());
+
+            if (estrelinhas.length === 0) {
+                const msg = document.createElement('p');
+                msg.style.textAlign = 'center';
+                msg.textContent = 'Nenhuma estrelinha registrada.';
+                carousel.insertBefore(msg, btnPrev);
+                
+                if(btnPrev) btnPrev.style.display = 'none';
+                if(btnNext) btnNext.style.display = 'none';
+                return;
+            }
+
+            // Exibe os botões apenas se houver mais de 1 estrelinha
+            if(estrelinhas.length > 1) {
+                if(btnPrev) btnPrev.style.display = 'block';
+                if(btnNext) btnNext.style.display = 'block';
+            } else {
+                if(btnPrev) btnPrev.style.display = 'none';
+                if(btnNext) btnNext.style.display = 'none';
+            }
+
+            estrelinhas.forEach((estrela, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `carousel-item template-dinamico ${index === 0 ? 'active' : ''}`;
+                
+                const fotoSrc = estrela.foto && estrela.foto !== 'null' ? estrela.foto : 'assets/imgs/default-placeholder.jpeg';
+
+                itemDiv.innerHTML = `
+                    <img src="${fotoSrc}" alt="Foto de ${estrela.nome}">
+                    <h3 style="margin: 10px 0 5px 0; color: #fdfdfd;">${estrela.nome}</h3>
+                    <p style="font-style: italic;">${estrela.descricao || ''}</p>
+                `;
+                
+                carousel.insertBefore(itemDiv, btnPrev);
+            });
+
+            // Chama a função genérica de navegação passando o ID deste carrossel específico
+            configurarCarrossel('estrelinhas-dinamico');
+
+        } else {
+            console.error('Erro ao carregar estrelinhas.');
+        }
+    } catch (error) {
+        console.error('Erro na requisição:', error);
+    }
+}
 

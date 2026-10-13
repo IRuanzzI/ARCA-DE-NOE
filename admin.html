@@ -124,8 +124,8 @@
                             <input type="date" id="data" name="data">
                         </div>
                         <div>
-                            <label for="fotos">Fotos (Múltiplas)</label>
-                            <input type="file" id="fotos" name="fotos" multiple class="file-input" required>
+                            <label for="fotos">Foto </label>
+                            <input type="file" id="fotos" name="fotos" class="file-input" required>
                         </div>
                     </div>
                     <button type="button" onclick="uploadDiario()" class="btn-acao"><i class="fas fa-upload"></i>
@@ -389,7 +389,6 @@
                 </div>
             </div>
 
-            <!-- Modal de Gestão de Documentos -->
             <div id="modal-documentos" class="modal-overlay hide">
                 <div class="modal-content modal-prontuario">
                     <div class="modal-header">
@@ -397,7 +396,24 @@
                         <button onclick="fecharModalDocumentos()" class="btn-fechar-modal">&times;</button>
                     </div>
 
+                    <!-- INÍCIO DO NOVO TRECHO PARA UPLOAD NO PRONTUÁRIO -->
+                    <div class="form-modal-group full" style="margin-bottom: 20px;">
+                        <label>Adicionar Novo Documento (PDF ou Imagem):</label>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <input type="file" id="input-novo-doc-prontuario" accept=".pdf, image/*"
+                                style="display: none;">
+                            <label for="input-novo-doc-prontuario" class="botao-escolher-ficheiro">Selecionar
+                                Documento</label>
 
+                            <span id="nome-ficheiro-selecionado-prontuario"
+                                style="color: var(--cor-texto-claro); font-size: 0.9rem; margin-left: 10px;">Nenhum
+                                ficheiro selecionado</span>
+
+                            <button onclick="adicionarDocumentoProntuario()" class="btn-primary-modal"
+                                style="margin-top: 0; padding: 0.8rem 1.5rem;">Upload</button>
+                        </div>
+                    </div>
+                    <!-- FIM DO NOVO TRECHO -->
 
                     <div id="container-documentos"
                         style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
@@ -546,53 +562,82 @@
                     <h3>Registro de Óbitos (Estrelinhas)</h3>
                     <p>Memorial e histórico dos animais que partiram.</p>
                 </div>
+                <!-- ID para o botão abrir o modal -->
+                <button class="btn-acao" onclick="abrirModalEstrelinha()"><i class="fas fa-add"></i> Nova
+                    Estrelinha</button>
                 <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
             </div>
             <div class="table-container">
-                <table class="data-table">
+                <!-- Adicionado ID à tabela para popular com JS -->
+                <table class="data-table" id="tabela-estrelinhas">
                     <thead>
                         <tr>
-                            <th>Nome</th>
-                            <th>Data de Falecimento</th>
                             <th>FOTO</th>
+                            <th>Nome</th>
+                            <th>Descrição</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><strong>Lindinha</strong></td>
-                            <td>10/02/2024</td>
-                            <td>FOTO</td>
-                            <td class="table-actions">
-                                <button class="btn-icon delete"><i class="fas fa-trash"></i></button>
-                            </td>
-                        </tr>
+                        <!-- As estrelinhas serão carregadas aqui via JS -->
                     </tbody>
                 </table>
             </div>
+
+            <!-- Modal para Adicionar Estrelinha -->
+            <div id="modal-estrelinhas" class="modal-overlay hide">
+                <div class="modal-content modal-prontuario">
+                    <div class="modal-header">
+                        <h2>Cadastrar Nova Estrelinha</h2>
+                        <button onclick="fecharModalEstrelinha()" class="btn-fechar-modal">&times;</button>
+                    </div>
+                    <form id="form-estrelinha" class="form-modal-grid">
+                        <div class="form-modal-group full">
+                            <label for="nome-estrelinha">Nome do Animal:</label>
+                            <input type="text" id="nome-estrelinha" placeholder="Ex: Lindinha" required>
+                        </div>
+                        <div class="form-modal-group full">
+                            <label for="descricao-estrelinha">Descrição / Data / Mensagem:</label>
+                            <textarea id="descricao-estrelinha" rows="3"
+                                placeholder="Mensagem de saudade ou data de falecimento..."></textarea>
+                        </div>
+                        <div class="form-modal-group full">
+                            <label for="foto-estrelinha">Foto (Opcional):</label>
+                            <input type="file" id="foto-estrelinha" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn-primary-modal">Salvar Homenagem</button>
+                    </form>
+                </div>
+            </div>
         </section>
+        <!-- Aba Geral (DOCUMENTOS DA ONG) -->
         <section id="documentos" class="admin-section hide">
             <div class="section-header flex-between">
-                <div>
-                    <h3>Documentos</h3>
-                    <p>Gerenciar documentos e contratos</p>
-                </div>
-                <button class="btn-acao btn-voltar-dash"><i class="fas fa-arrow-left"></i> Voltar</button>
-            </div>
-            <div class="table-container">
                 <div>
                     <h1>Documentos registrados</h1>
                 </div>
 
+            </div>
+            <div class="table-container">
 
                 <div class="form-modal-group full" style="margin-bottom: 20px;">
                     <label>Adicionar Novo Documento (PDF ou Imagem):</label>
                     <div style="display: flex; gap: 10px; align-items: center;">
+
+                        <label for="nome-ficheiro">Nome:</label>
+                        <input type="text" name="nome-arquivo" id="nome-ficheiro">
+
                         <input type="file" id="input-novo-doc" accept=".pdf, image/*" style="display: none;">
                         <label for="input-novo-doc" class="botao-escolher-ficheiro">Selecionar Documento</label>
-
-                        <button onclick="adicionarDocumento()" class="btn-upload">Upload</button>
+                        <span id="nome-ficheiro-selecionado-arca"
+                            style="color: var(--cor-texto-claro); font-size: 0.9rem; margin-left: 10px;">Nenhum ficheiro
+                            selecionado</span>
+                        <button onclick="adicionarDocumentoARCA()" class="btn-upload">Upload</button>
                     </div>
+                </div>
+
+                <div id="container-documentos-gerais"
+                    style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
                 </div>
             </div>
         </section>

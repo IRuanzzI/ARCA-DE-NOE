@@ -52,10 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-    carregarDiarioAdmin();
-    solicitacoes();
-    carregarFinanceiro();
-
     const btnNovoLancamento = document.getElementById('btnNovoLancamento');
     const btnCancelarLancamento = document.getElementById('cancelarLancamento');
     const formFinanceiro = document.getElementById('formulario-financeiro');
@@ -113,6 +109,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetSection) {
             targetSection.classList.remove('hide');
         }
+
+        // ==========================================
+        // LAZY LOADING (Carrega dados apenas ao abrir a aba)
+        // ==========================================
+        switch (targetId) {
+            case 'dia-a-dia':
+                carregarDiarioAdmin();
+                break;
+            case 'animais':
+                carregarAnimais();
+                break;
+            case 'doacoes':
+                carregarFinanceiro();
+                break;
+            case 'documentos':
+                carregarDocumentosGerais();
+                break;
+            case 'solicitacoes':
+                solicitacoes();
+                break;
+            case 'estrelinhas':
+                carregarEstrelinhas();
+                break;
+
+        }
     }
 
     navButtons.forEach(button => {
@@ -165,14 +186,62 @@ document.addEventListener('DOMContentLoaded', () => {
     if (formRegistro) {
         formRegistro.addEventListener('submit', addCad);
     }
-    carregarAnimais();
+
+    // ==========================================
+    // EXIBIR NOME DO FICHEIRO SELECIONADO (ARCA)
+    // ==========================================
+    const inputNovoDocArca = document.getElementById('input-novo-doc');
+    const displayNomeFicheiroArca = document.getElementById('nome-ficheiro-selecionado-arca');
+    const inputNomeDigitadoArca = document.getElementById('nome-ficheiro');
+
+    if (inputNovoDocArca && displayNomeFicheiroArca) {
+        inputNovoDocArca.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                const nomeFicheiro = this.files[0].name;
+                displayNomeFicheiroArca.textContent = nomeFicheiro;
+                displayNomeFicheiroArca.style.color = "var(--cor-texto)";
+
+                // Preencher automaticamente o campo "Nome:" se estiver vazio
+                if (inputNomeDigitadoArca && inputNomeDigitadoArca.value.trim() === '') {
+                    const nomeSemExtensao = nomeFicheiro.split('.').slice(0, -1).join('.');
+                    inputNomeDigitadoArca.value = nomeSemExtensao.toUpperCase();
+                }
+            } else {
+                displayNomeFicheiroArca.textContent = "Nenhum ficheiro selecionado";
+                displayNomeFicheiroArca.style.color = "var(--cor-texto-claro)";
+            }
+        });
+    }
+
+    // ==========================================
+    // EXIBIR NOME DO FICHEIRO SELECIONADO (PRONTUÁRIO)
+    // ==========================================
+    // ==========================================
+    // EXIBIR NOME DO FICHEIRO SELECIONADO (PRONTUÁRIO)
+    // ==========================================
+    const inputNovoDocProntuario = document.getElementById('input-novo-doc-prontuario');
+    const displayNomeFicheiroProntuario = document.getElementById('nome-ficheiro-selecionado-prontuario');
+
+    if (inputNovoDocProntuario && displayNomeFicheiroProntuario) {
+        inputNovoDocProntuario.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                // Apenas pega o nome para mostrar no ecrã
+                const nomeFicheiro = this.files[0].name;
+                displayNomeFicheiroProntuario.textContent = nomeFicheiro;
+                displayNomeFicheiroProntuario.style.color = "var(--cor-texto)";
+            } else {
+                displayNomeFicheiroProntuario.textContent = "Nenhum ficheiro selecionado";
+                displayNomeFicheiroProntuario.style.color = "var(--cor-texto-claro)";
+            }
+        });
+    }
 
 });
 
 async function fetchAutenticado(endpoint, options = {}) {
     const token = localStorage.getItem('jwt_token');
     options.headers = options.headers || {};
-    
+
     if (token) {
         options.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -180,15 +249,15 @@ async function fetchAutenticado(endpoint, options = {}) {
     try {
         const response = await fetch(`${API_URL}${endpoint}`, options);
 
-       
+
         if (response.status === 401 || response.status === 403) {
             alert('A sua sessão expirou ou não tem permissões. Por favor, faça login novamente.');
-            
+
             // Limpa os dados falsos/expirados
             localStorage.removeItem('jwt_token');
             localStorage.removeItem('nome');
             localStorage.removeItem('cargo');
-            
+
             // Redireciona para o início
             window.location.replace('index.html');
             return null;
@@ -736,7 +805,46 @@ async function abrirModalDocumentos(animalId) {
 function fecharModalDocumentos() {
     document.getElementById('modal-documentos').classList.add('hide');
     document.querySelector('.admin-content').classList.remove('no-scroll');
-    document.getElementById('input-novo-doc').value = '';
+
+    // Limpa o ficheiro
+    const inputDoc = document.getElementById('input-novo-doc-prontuario');
+    if (inputDoc) inputDoc.value = '';
+
+    // Repõe o texto do span
+    const displaySpan = document.getElementById('nome-ficheiro-selecionado-prontuario');
+    if (displaySpan) {
+        displaySpan.textContent = "Nenhum ficheiro selecionado";
+        displaySpan.style.color = "var(--cor-texto-claro)";
+    }
+}
+
+async function adicionarDocumentoProntuario() {
+    const input = document.getElementById('input-novo-doc-prontuario');
+    if (!input.files || input.files.length === 0) {
+        alert("Selecione um ficheiro primeiro.");
+        return;
+    }
+
+    try {
+        const docBase64 = await convertFileToBase64(input.files[0]);
+
+        listaDocsAtual.push(docBase64);
+        await salvarMidiaProntuario({ documentos: listaDocsAtual });
+
+        input.value = ''; // Limpa o ficheiro selecionado
+
+        // Volta o texto para o padrão
+        const displaySpan = document.getElementById('nome-ficheiro-selecionado-prontuario');
+        if (displaySpan) {
+            displaySpan.textContent = "Nenhum ficheiro selecionado";
+            displaySpan.style.color = "var(--cor-texto-claro)";
+        }
+
+        renderizarDocumentos();
+    } catch (err) {
+        console.error(err);
+        alert("Erro ao processar o ficheiro do prontuário.");
+    }
 }
 
 function renderizarDocumentos() {
@@ -770,21 +878,55 @@ function renderizarDocumentos() {
     });
 }
 
-async function adicionarDocumento() {
+async function adicionarDocumentoARCA() {
     const input = document.getElementById('input-novo-doc');
     if (!input.files || input.files.length === 0) {
         alert("Selecione um ficheiro primeiro.");
         return;
     }
 
-    try {
-        const docBase64 = await convertFileToBase64(input.files[0]);
-        listaDocsAtual.push(docBase64);
-        await salvarMidiaProntuario({ documentos: listaDocsAtual });
+    const inputNome = document.getElementById('nome-ficheiro');
+    const nomeDigitado = inputNome.value.trim();
 
-        input.value = '';
-        renderizarDocumentos();
+    if (!nomeDigitado) {
+        alert("Por favor, dê um nome ao documento.");
+        return;
+    }
+
+    try {
+        const docBase64 = await convertFileToBase64(input.files[0]);       // Retirei as linhas do listaDocsAtual, pois isto é um doc geral, não do prontuário
+        // A aba geral apenas guarda no banco de dados, sem estar associada a um animalSelecionadoMidia.
+
+        const novoDocumento = {
+            arquivo: docBase64,
+            nome: nomeDigitado,
+        };
+
+        const response = await fetchAutenticado(`/documentos/newDocument`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(novoDocumento)
+        });
+
+        if (!response.ok) {
+            alert('Erro ao guardar as alterações no servidor.');
+        } else {
+            // Limpa os campos após o sucesso
+            input.value = '';
+            inputNome.value = '';
+
+            const displayNomeFicheiroArca = document.getElementById('nome-ficheiro-selecionado-arca');
+            if (displayNomeFicheiroArca) {
+                displayNomeFicheiroArca.textContent = "Nenhum ficheiro selecionado";
+                displayNomeFicheiroArca.style.color = "var(--cor-texto-claro)";
+            }
+            alert("Documento salvo na aba geral.");
+            carregarDocumentosGerais();
+        }
+
+        // Se tiveres uma função carregarDocumentosGerais(), deves chamá-la aqui.
     } catch (err) {
+        console.error(err);
         alert("Erro ao processar o ficheiro.");
     }
 }
@@ -873,6 +1015,34 @@ async function uploadDiario() {
     }
 
 
+}
+
+
+// ==========================================
+// APAGAR DOCUMENTO GERAL DA ONG
+// ==========================================
+async function apagarDocumentoGeral(idDocumento) {
+    if (!confirm("Tem certeza que deseja eliminar este documento? Esta ação não pode ser desfeita.")) {
+        return;
+    }
+
+    try {
+        // Envia a requisição DELETE para a rota que criaste no teu backend Java
+        const response = await fetchAutenticado(`/documentos/${idDocumento}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            alert("Documento eliminado com sucesso.");
+            // Após apagar, recarregamos a lista para atualizar a página
+            carregarDocumentosGerais();
+        } else {
+            alert("Erro ao tentar eliminar o documento no servidor.");
+        }
+    } catch (error) {
+        console.error("Erro na requisição de exclusão:", error);
+        alert("Ocorreu um erro ao comunicar com o servidor.");
+    }
 }
 
 // ==========================================
@@ -1209,7 +1379,7 @@ async function apagarLancamento(id) {
         });
 
         if (response.ok) {
-            carregarFinanceiro(); 
+            carregarFinanceiro();
         } else {
             alert("Erro ao apagar o registo.");
         }
@@ -1217,6 +1387,189 @@ async function apagarLancamento(id) {
         console.error('Erro:', error);
     }
 }
+
+
+
+let listaDocumentosGerais = []; // Mudei o nome da variável para não entrar em conflito
+
+async function carregarDocumentosGerais() { // Mudei o nome da função
+    try {
+        const response = await fetchAutenticado(`/documentos`, { method: 'GET' });
+
+        if (response.ok) {
+            listaDocumentosGerais = await response.json();
+
+            // Usar o ID correto que está no teu admin.html
+            const container = document.getElementById('container-documentos-gerais');
+
+            // Limpa o contentor antes de carregar
+            container.innerHTML = '';
+
+            // Se não houver documentos, mostra uma mensagem
+            if (listaDocumentosGerais.length === 0) {
+                container.innerHTML = '<p style="color: var(--cor-texto-claro);">Nenhum documento registrado.</p>';
+                return;
+            }
+
+            // Cria o HTML para cada documento da ONG
+            listaDocumentosGerais.forEach((doc, index) => {
+                const div = document.createElement('div');
+                div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px;';
+
+                // Verifica se é PDF para colocar o ícone correto
+                const isPdf = doc.arquivo && doc.arquivo.includes('application/pdf');
+                const icon = isPdf ? '<i class="fas fa-file-pdf" style="color: #e74c3c; font-size: 1.5rem;"></i>' : '<i class="fas fa-file-image" style="color: var(--cor-primaria); font-size: 1.5rem;"></i>';
+
+                // Usamos doc.nome (se existir no backend) ou um nome genérico
+                const nomeExibicao = doc.nome ? doc.nome : `Documento ${index + 1}`;
+
+                div.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        ${icon}
+                        <span style="color: var(--cor-texto);">${nomeExibicao}</span>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="${doc.arquivo}" download="${nomeExibicao}" style="background: var(--cor-secundaria); color: white; padding: 5px 10px; border-radius: 5px; text-decoration: none; font-size: 0.85rem;"><i class="fas fa-download"></i> Baixar</a>
+                        
+                        <!-- NOTA: Adicionei um botão de apagar. Precisas criar a função apagarDocumentoGeral(id) depois -->
+                        <button onclick="apagarDocumentoGeral(${doc.id})" style="background: #e74c3c; border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer;"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+        } else {
+            console.error('Erro ao carregar documentos.');
+        }
+    } catch (error) {
+        console.error('Erro na requisição de carregamento:', error);
+    }
+}
+
+async function carregarEstrelinhas() {
+    try {
+        const response = await fetch(`${API_URL}/animal/estrelinhas`)
+
+        if (response.ok) {
+            const estrelinhas = await response.json();
+            const tbody = document.querySelector('#tabela-estrelinhas tbody');
+            tbody.innerHTML = '';
+
+            if (estrelinhas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--cor-texto-claro);">Nenhuma estrelinha registrada.</td></tr>';
+                return;
+            }
+
+            estrelinhas.forEach(estrela => {
+                const tr = document.createElement('tr');
+                const fotoSrc = estrela.foto && estrela.foto !== 'null' ? estrela.foto : 'assets/imgs/default-placeholder.jpeg';
+
+                tr.innerHTML = `
+                    <td><img src="${fotoSrc}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%; border: 1px solid var(--glass-border);"></td>
+                    <td><strong>${estrela.nome}</strong></td>
+                    <td>${estrela.descricao || '-'}</td>
+                    <td class="table-actions">
+                        <button class="btn-icon delete" onclick="apagarEstrelinha(${estrela.id})" title="Apagar"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            console.error('Erro ao carregar estrelinhas.');
+        }
+    } catch (error) {
+        console.error('Erro na requisição:', error);
+    }
+}
+
+
+function abrirModalEstrelinha() {
+    document.getElementById('form-estrelinha').reset(); // Limpa o formulário
+    document.getElementById('modal-estrelinhas').classList.remove('hide');
+    document.querySelector('.admin-content').classList.add('no-scroll');
+}
+
+function fecharModalEstrelinha() {
+    document.getElementById('modal-estrelinhas').classList.add('hide');
+    document.querySelector('.admin-content').classList.remove('no-scroll');
+}
+
+
+const formEstrelinha = document.getElementById('form-estrelinha');
+if (formEstrelinha) {
+    formEstrelinha.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const cargo = localStorage.getItem('cargo');
+        if (cargo !== 'ADMIN') {
+            alert('Apenas a Diretoria pode registrar estrelinhas.');
+            return;
+        }
+
+        const nome = document.getElementById('nome-estrelinha').value.trim();
+        const descricao = document.getElementById('descricao-estrelinha').value.trim();
+        const inputFoto = document.getElementById('foto-estrelinha');
+
+        let fotoBase64 = null;
+        if (inputFoto.files && inputFoto.files.length > 0) {
+            try {
+                fotoBase64 = await convertFileToBase64(inputFoto.files[0]);
+            } catch (err) {
+                console.error("Erro ao converter foto:", err);
+                alert("Erro ao processar a imagem.");
+                return;
+            }
+        }
+
+        const novaEstrelinha = {
+            nome: nome,
+            descricao: descricao,
+            foto: fotoBase64
+        };
+
+        try {
+            const response = await fetchAutenticado('/animal/estrelinha', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(novaEstrelinha)
+            });
+
+            if (response.ok) {
+                alert('Homenagem cadastrada com sucesso!');
+                fecharModalEstrelinha();
+                carregarEstrelinhas();
+            } else {
+                alert('Erro ao cadastrar a estrelinha no servidor.');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            alert('Ocorreu um erro ao comunicar com o servidor.');
+        }
+    });
+}
+
+// 4. Apagar Estrelinha
+async function apagarEstrelinha(id) {
+    if (!confirm("Tem a certeza que deseja eliminar este registro do memorial?")) {
+        return;
+    }
+
+    try {
+        const response = await fetchAutenticado(`/animal/estrelinha/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok || response.status === 204) {
+            alert("Registro eliminado com sucesso.");
+            carregarEstrelinhas(); // Atualiza a tabela
+        } else {
+            alert("Erro ao tentar eliminar a estrelinha.");
+        }
+    } catch (error) {
+        console.error("Erro na requisição de exclusão:", error);
+    }
+}
+
 
 function sairDoSistema() {
     document.querySelector('.btn-sair');

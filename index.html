@@ -329,7 +329,12 @@
                 <h2>Memorial das Estrelinhas</h2>
                 <p>Aqueles que deixaram saudade, mas conheceram o amor antes de partir.</p>
             </div>
-            <div id="estrelinhas-dinamico" class="grid-estrelinhas">
+
+            <!-- Usamos as mesmas classes do carrossel do Dia-a-Dia -->
+            <div id="estrelinhas-dinamico" class="carousel">
+                <!-- Os itens serão injetados aqui -->
+                <button class="prev">❮</button>
+                <button class="next">❯</button>
             </div>
         </section>
 
@@ -378,7 +383,7 @@
         </section>
     </main>
 
-   <div class="form-login hide" id="modal-login">
+    <div class="form-login hide" id="modal-login">
         <div class="form-card form-card-login">
             <h2><i class="fas fa-user-shield"></i> Acesso Restrito</h2>
             <p>Área de gestão da ARCA.</p>
@@ -396,10 +401,10 @@
                     <button type="button" class="btn-fechar" id="fechar-login">Voltar ao site</button>
                     <p id="erro" style="color: red; text-align: center;"></p>
                 </div>
-            
+
             </form>
         </div>
-   </div>
+    </div>
 
     <div class="modal-imagem-overlay hide" id="modal-imagem-animal">
         <div class="form-card form-card-login" style="text-align: center;">

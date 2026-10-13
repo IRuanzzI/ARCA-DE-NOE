@@ -1,41 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Antonio:wght@700&family=Poppins:wght@300;400;500;600;700&display=swap');
 
-
 :root {
-    /* Cores principais baseadas na Logo */
     --cor-primaria: #4bc0e8;
-    /* Azul Turquesa / Ciano Claro (Usado agora para destaque/botões) */
     --cor-primaria-hover: #33a8d1;
-    /* Tom mais escuro para o hover do ciano */
-
     --cor-secundaria: #1252b4;
-    /* Azul Royal Profundo */
     --cor-secundaria-hover: #0e3f91;
-    /* Tom mais escuro para o hover do azul royal */
-
-    /* Fundo Escuro para descansar a vista (Dark Blue) */
     --cor-fundo: #071529;
-    /* Azul marinho muito escuro (quase preto) */
     --cor-fundo-alt: #0a1f3d;
-    /* Azul um tom acima para variar nas secções */
-
-    /* Textos otimizados para fundo escuro */
     --cor-texto: #E2E8F0;
-    /* Branco/Gelo suave, não agride a vista */
     --cor-texto-claro: #94A3B8;
-    /* Cinzento-azulado para subtítulos */
     --cor-branco: #FFFFFF;
 
-    /* --- EFEITO GLASSMORPHISM (Otimizado para Dark Mode) --- */
     --glass-bg: rgba(255, 255, 255, 0.05);
-    /* Vidro translúcido escuro */
     --glass-bg-hover: rgba(255, 255, 255, 0.1);
-    /* Vidro ligeiramente mais claro no hover */
     --glass-border: rgba(255, 255, 255, 0.15);
-    /* Borda fininha brilhante */
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-    /* Sombra para profundidade */
 }
 
 * {
@@ -51,7 +31,6 @@ html {
 
 body {
     background-color: var(--cor-fundo);
-    /* Um gradiente radial subtil no fundo para dar uma textura moderna */
     background-image: radial-gradient(circle at 15% 50%, rgba(18, 82, 180, 0.15), transparent 25%),
         radial-gradient(circle at 85% 30%, rgba(75, 192, 232, 0.1), transparent 25%);
     background-attachment: fixed;
@@ -89,27 +68,20 @@ header {
 .logo {
     display: flex;
     flex-direction: row;
-
     align-items: center;
-
     gap: 1rem;
-
 }
 
 .logo img {
     height: 60px;
-
     width: auto;
 }
 
-
 .logo p {
     color: var(--cor-branco);
-
     font-weight: 600;
     font-size: 1.2rem;
     margin: 0;
-
 }
 
 nav {
@@ -151,7 +123,6 @@ nav a.green {
 nav a.highlight:hover {
     background-color: var(--cor-primaria);
     color: #000;
-    /* Contraste ao usar o azul claro */
 }
 
 #btn-login-nav {
@@ -167,7 +138,6 @@ nav a.highlight:hover {
     font-family: "Antonio", sans-serif;
     font-size: 18px;
 }
-
 
 /* =========================================
    HERO SECTION
@@ -185,9 +155,6 @@ nav a.highlight:hover {
     box-shadow: var(--glass-shadow);
     margin-bottom: 2rem;
     border-bottom: 1px solid var(--glass-border);
-}
-
-section#hero {
     max-width: 100%;
 }
 
@@ -234,7 +201,6 @@ section#hero {
 .btn-primary {
     background-color: var(--cor-primaria);
     color: #071529;
-    /* Texto escuro no botão claro para destacar */
     box-shadow: 0 4px 15px rgba(75, 192, 232, 0.3);
 }
 
@@ -261,6 +227,13 @@ section {
     padding: 5rem 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    margin-top: 40px;
+    border-radius: 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
 }
 
 .admin-section {
@@ -306,7 +279,6 @@ section {
     margin: 0 auto;
     border-radius: 20px;
     overflow: hidden;
-
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -322,13 +294,8 @@ section {
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .carousel-item.active {
@@ -400,7 +367,6 @@ section {
     display: none;
 }
 
-/* CARD ANIMAL COM GLASSMORPHISM DARK */
 .card-animal {
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
@@ -420,7 +386,6 @@ section {
     background: var(--glass-bg-hover);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
     border-color: rgba(75, 192, 232, 0.4);
-    /* Brilho azul na borda */
 }
 
 .card-animal img {
@@ -580,7 +545,6 @@ section {
     font-size: 0.9rem;
 }
 
-/* Inputs em vidro translúcido */
 .form-group input,
 .form-group select {
     padding: 1.2rem;
@@ -588,7 +552,6 @@ section {
     border-radius: 12px;
     font-size: 1rem;
     background: rgba(0, 0, 0, 0.2);
-    /* Fundo bem subtil para destacar a caixa */
     color: var(--cor-branco);
     transition: all 0.3s;
 }
@@ -599,7 +562,6 @@ section {
 
 .form-group select option {
     background-color: var(--cor-fundo-alt);
-    /* Cor do dropdown para ler melhor */
     color: var(--cor-texto);
 }
 
@@ -689,17 +651,6 @@ section {
     margin: auto;
 }
 
-section {
-    margin-top: 40px;
-    border-radius: 20px;
-
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
-}
-
 /* =========================================
    FOOTER E DEMAIS ELEMENTOS
 ========================================= */
@@ -754,7 +705,6 @@ footer a:hover {
 
 .doacoes-content p {
     margin-top: 50px;
-    ;
     margin-bottom: 50px;
 }
 
@@ -775,86 +725,14 @@ footer a:hover {
     background: rgba(255, 255, 255, 0.9);
 }
 
-#texto-animado {
-    /* Opcional, dá cara de máquina de escrever */
-    font-size: 18px;
-}
-
-/* Cria o cursor piscando no final do texto */
 #texto-animado::after {
     content: '|';
     animation: piscar 0.8s infinite;
 }
 
 @keyframes piscar {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0;
-    }
-}
-
-/* =========================================
-   RESPONSIVIDADE (TELEMÓVEL / MOBILE)
-========================================= */
-@media (max-width: 768px) {
-    header {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1.5rem;
-    }
-
-    nav {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 1rem;
-    }
-
-    #hero {
-        padding: 4rem 1.5rem;
-        border-radius: 0 0 30px 30px;
-    }
-
-    .hero-content h2 {
-        font-size: 2.2rem;
-    }
-
-    .hero-buttons {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    section {
-        padding: 3rem 1.5rem;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .form-card,
-    .form-card-login {
-        padding: 2rem 1.5rem;
-    }
-
-    .prev-netflix,
-    .next-netflix {
-        display: none;
-    }
-
-    .carousel-track {
-        padding: 1rem 0;
-    }
-
-    footer {
-        flex-direction: column;
-        text-align: center;
-        padding: 20px;
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
 }
 
 /* =========================================
@@ -862,8 +740,9 @@ footer a:hover {
 ========================================= */
 .admin-body {
     display: flex;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    height: auto;
+    overflow-x: hidden;
     background-color: var(--cor-fundo);
     background-image: radial-gradient(circle at 15% 50%, rgba(18, 82, 180, 0.15), transparent 25%),
         radial-gradient(circle at 85% 30%, rgba(75, 192, 232, 0.1), transparent 25%);
@@ -871,7 +750,7 @@ footer a:hover {
 
 .sidebar {
     width: 280px;
-    background: rgba(7, 21, 41, 0.85);
+    background: rgba(7, 21, 41, 0.95);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     color: var(--cor-branco);
@@ -879,8 +758,10 @@ footer a:hover {
     flex-direction: column;
     box-shadow: var(--glass-shadow);
     z-index: 10;
-    overflow: auto;
     border-right: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
 }
 
 .sidebar-header {
@@ -909,6 +790,7 @@ footer a:hover {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+    overflow-y: auto;
 }
 
 .nav-btn {
@@ -983,15 +865,12 @@ footer a:hover {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
-}
-
-.admin-content.no-scroll {
-    overflow-y: hidden !important;
+    min-height: 100vh;
+    overflow-y: visible;
 }
 
 .admin-topbar {
-    background: rgba(7, 21, 41, 0.6);
+    background: rgba(7, 21, 41, 0.8);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     padding: 1.2rem 3rem;
@@ -999,6 +878,9 @@ footer a:hover {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    z-index: 99;
 }
 
 .admin-topbar h2 {
@@ -1041,8 +923,6 @@ footer a:hover {
     font-weight: bold;
 }
 
-
-
 .section-header {
     margin-bottom: 2.5rem;
 }
@@ -1059,7 +939,6 @@ footer a:hover {
     align-items: center;
 }
 
-/* CARDS DO DASHBOARD EM VIDRO */
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1104,31 +983,11 @@ footer a:hover {
     transform: scale(1.1);
 }
 
-/* Ícones com fundo transparente escuro */
-.dash-icon.orange {
-    background: rgba(230, 126, 34, 0.2);
-    color: #e67e22;
-}
-
-.dash-icon.blue {
-    background: rgba(75, 192, 232, 0.2);
-    color: var(--cor-primaria);
-}
-
-.dash-icon.green {
-    background: rgba(46, 204, 113, 0.2);
-    color: #2ecc71;
-}
-
-.dash-icon.purple {
-    background: rgba(155, 89, 182, 0.2);
-    color: #9b59b6;
-}
-
-.dash-icon.dark {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--cor-branco);
-}
+.dash-icon.orange { background: rgba(230, 126, 34, 0.2); color: #e67e22; }
+.dash-icon.blue { background: rgba(75, 192, 232, 0.2); color: var(--cor-primaria); }
+.dash-icon.green { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+.dash-icon.purple { background: rgba(155, 89, 182, 0.2); color: #9b59b6; }
+.dash-icon.dark { background: rgba(255, 255, 255, 0.1); color: var(--cor-branco); }
 
 .dash-card h4 {
     color: var(--cor-branco);
@@ -1161,7 +1020,6 @@ footer a:hover {
     color: #071529;
 }
 
-/* PAINEL E TABELAS EM VIDRO */
 .form-panel,
 .table-container {
     background: var(--glass-bg);
@@ -1172,7 +1030,6 @@ footer a:hover {
     box-shadow: var(--glass-shadow);
     border: 1px solid var(--glass-border);
     overflow-x: auto;
-    /* Para a tabela não quebrar a tela no mobile */
 }
 
 .data-table {
@@ -1214,20 +1071,9 @@ footer a:hover {
     font-weight: 600;
 }
 
-.status-badge.pending {
-    background-color: rgba(241, 196, 15, 0.2);
-    color: #f1c40f;
-}
-
-.status-badge.available {
-    background-color: rgba(75, 192, 232, 0.2);
-    color: var(--cor-primaria);
-}
-
-.status-badge.success {
-    background-color: rgba(46, 204, 113, 0.2);
-    color: #2ecc71;
-}
+.status-badge.pending { background-color: rgba(241, 196, 15, 0.2); color: #f1c40f; }
+.status-badge.available { background-color: rgba(75, 192, 232, 0.2); color: var(--cor-primaria); }
+.status-badge.success { background-color: rgba(46, 204, 113, 0.2); color: #2ecc71; }
 
 .table-actions {
     display: flex;
@@ -1257,7 +1103,6 @@ footer a:hover {
     background: rgba(231, 76, 60, 0.1);
 }
 
-/* CARDS DE PEDIDOS */
 .card-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -1271,9 +1116,7 @@ footer a:hover {
     padding: 2rem;
     border-radius: 20px;
     box-shadow: var(--glass-shadow);
-    border-left: 1px solid var(--glass-border);
-    border-right: 1px solid var(--glass-border);
-    border-bottom: 1px solid var(--glass-border);
+    border: 1px solid var(--glass-border);
 }
 
 .request-card:hover {
@@ -1307,7 +1150,6 @@ footer a:hover {
     gap: 1rem;
 }
 
-/* BARRA DE PESQUISA */
 .search-bar {
     display: flex;
     gap: 1rem;
@@ -1369,7 +1211,6 @@ footer a:hover {
 }
 
 .botao-escolher-ficheiro {
-
     background-color: var(--cor-secundaria);
     color: white;
     border: none;
@@ -1377,8 +1218,6 @@ footer a:hover {
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s;
-
-
 }
 
 .request-actions-solicitacoes {
@@ -1386,7 +1225,7 @@ footer a:hover {
     justify-content: center;
     width: 100%;
     height: 30%;
-    margin-top: 50px
+    margin-top: 50px;
 }
 
 .btn-danger {
@@ -1400,11 +1239,10 @@ footer a:hover {
 }
 
 /* =========================================
-   MODAIS (PRONTUÁRIO E EDIÇÃO)
+   MODAIS
 ========================================= */
 .modal-overlay {
     background: rgba(0, 5, 15, 0.85);
-    /* Fundo escuro igual ao login */
     backdrop-filter: blur(8px);
     position: fixed;
     top: 0;
@@ -1427,7 +1265,6 @@ footer a:hover {
     background: rgba(0, 5, 15, 0.85) !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-
     justify-content: center !important;
     align-items: center !important;
     z-index: 2000 !important;
@@ -1441,28 +1278,19 @@ footer a:hover {
 
 .modal-content {
     background: var(--cor-fundo);
-    /* Fundo escuro do site */
     border: 1px solid var(--glass-border);
     border-radius: 20px;
     width: 100%;
     max-height: 90vh;
-    /* Não deixa ultrapassar a altura da tela */
     overflow-y: auto;
-    /* Scroll interno se o conteúdo for grande */
     padding: 2.5rem;
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6);
     color: var(--cor-texto);
     position: relative;
 }
 
-/* Tamanhos específicos para cada modal */
-.modal-prontuario {
-    max-width: 700px;
-}
-
-.modal-edita-animal {
-    max-width: 450px;
-}
+.modal-prontuario { max-width: 700px; }
+.modal-edita-animal { max-width: 450px; }
 
 .modal-header {
     display: flex;
@@ -1493,7 +1321,6 @@ footer a:hover {
     color: #e74c3c;
 }
 
-/* Grid de Formulário Específico para o Modal Prontuário */
 .form-modal-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1532,7 +1359,6 @@ footer a:hover {
 .form-modal-group input[type="date"],
 .form-modal-group input[type="datetime-local"] {
     color-scheme: dark;
-    /* Faz o calendário do navegador ficar escuro */
 }
 
 .form-modal-group input:focus,
@@ -1562,28 +1388,16 @@ footer a:hover {
     transform: translateY(-2px);
 }
 
-/* Ajustes para Tabela Extensa */
-.table-container {
-    /* O overflow-x já existe no seu CSS, mas vamos garantir que a tabela tenha tamanho mínimo */
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    /* Suaviza no mobile */
-}
-
 .data-table {
     min-width: 1200px;
-    /* Força a tabela a ter espaço, criando scroll se a tela for menor */
     white-space: nowrap;
-    /* Impede o texto de quebrar de linha desnecessariamente */
 }
 
-/* Coluna de Informações Adicionais pode quebrar linha se for muito grande */
 .data-table td:nth-child(9) {
     white-space: normal;
     min-width: 250px;
 }
 
-/* Badges Financeiras */
 .badge-entrada {
     background-color: rgba(46, 204, 113, 0.2);
     color: #2ecc71;
@@ -1600,4 +1414,296 @@ footer a:hover {
     border-radius: 8px;
     font-weight: bold;
     font-size: 0.85rem;
+}
+
+.grid-estrelinhas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.estrelinha-card {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    text-align: center;
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.estrelinha-card:hover {
+    transform: translateY(-5px);
+}
+
+.estrelinha-img-container {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.estrelinha-img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.estrelinha-info {
+    padding: 20px;
+}
+
+.estrelinha-info h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.estrelinha-info p {
+    margin: 0;
+    color: #666;
+    font-size: 0.95rem;
+    font-style: italic;
+}
+
+/* =========================================
+   RESPONSIVIDADE (TABLETS E ECRÃS MÉDIOS)
+========================================= */
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sidebar {
+        width: 240px;
+    }
+
+    .form-grid,
+    .form-modal-grid {
+        gap: 1rem;
+    }
+}
+
+/* =========================================
+   RESPONSIVIDADE (TELEMÓVEIS / MOBILE)
+========================================= */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1.2rem;
+    }
+
+    nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.8rem;
+    }
+
+    nav a {
+        font-size: 0.85rem;
+        margin: 0;
+    }
+
+    #hero {
+        padding: 4rem 1.2rem;
+        border-radius: 0 0 25px 25px;
+        min-height: 50vh;
+    }
+
+    .hero-content h2 {
+        font-size: 2rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+
+    section {
+        padding: 3rem 1rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-card,
+    .form-card-login {
+        padding: 1.5rem;
+    }
+
+    .prev-netflix,
+    .next-netflix {
+        display: none;
+    }
+
+    .carousel-track {
+        padding: 1rem 0;
+        gap: 1rem;
+    }
+
+    .card-animal {
+        flex: 0 0 280px;
+    }
+
+    footer {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+        gap: 1.5rem;
+    }
+
+    /* PAINEL ADMINISTRADOR MOBILE */
+    .admin-body {
+        flex-direction: column;
+        min-height: 100vh;
+        height: auto;
+        overflow-x: hidden;
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    .sidebar-header {
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .sidebar-header p {
+        display: none;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0.5rem;
+        gap: 0.5rem;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+
+    .sidebar-nav::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+        background: var(--cor-primaria);
+        border-radius: 10px;
+    }
+
+    .nav-btn {
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+
+    .nav-btn.active {
+        border-left: none;
+        border-bottom: 3px solid var(--cor-primaria);
+        background-color: rgba(75, 192, 232, 0.1);
+    }
+
+    .sidebar-footer {
+        padding: 1rem;
+        display: block; /* Mantém o rodapé da sidebar visível no mobile para o botão sair */
+    }
+
+    .admin-content {
+        width: 100%;
+        min-height: auto;
+    }
+
+    .admin-topbar {
+        padding: 0.8rem 1rem;
+        position: relative;
+    }
+
+    .admin-topbar h2 {
+        font-size: 1rem;
+    }
+
+    .user-role {
+        display: none;
+    }
+
+    .admin-section {
+        padding: 1.5rem 1rem;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-panel,
+    .table-container {
+        padding: 1rem;
+        border-radius: 15px;
+    }
+
+    .modal-content {
+        padding: 1.5rem;
+        width: 95%;
+        max-height: 90vh;
+        border-radius: 15px;
+    }
+
+    .form-modal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .btn-acao {
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+        width: 100%;
+        justify-content: center;
+        margin-top: 10px;
+    }
+
+    .flex-between {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .search-bar {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .search-bar > div {
+        flex-direction: column;
+        width: 100% !important;
+    }
+
+    .search-bar select,
+    .search-bar input {
+        width: 100%;
+    }
+
+    .grid-estrelinhas {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
 }
