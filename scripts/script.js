@@ -391,15 +391,17 @@ function moverCarrossel(direcao, idCarrossel) {
     items[novoIndex].classList.add('active');
 }
 
+// ==========================================
+// RENDERIZAR E ABRIR MODAL DO DIA-A-DIA
+// ==========================================
+// Substitua APENAS esta função existente em script.js
 function renderizarCarrosselDiaADia(diarios) {
     const carousel = document.getElementById('dia-a-dia-dinamico');
     if (!carousel) return;
 
-    // Salva os botões antes de limpar o carrossel
     const btnPrev = carousel.querySelector('.prev');
     const btnNext = carousel.querySelector('.next');
 
-    // Limpa o conteúdo atual (remove o HTML estático)
     carousel.innerHTML = '';
 
     if (diarios.length === 0) {
@@ -407,33 +409,107 @@ function renderizarCarrosselDiaADia(diarios) {
         return;
     }
 
-
     diarios.forEach((post, index) => {
         const div = document.createElement('div');
-
         div.className = `carousel-item ${index === 0 ? 'active' : ''}`;
+        div.style.cursor = 'pointer';
 
+        // Pega a primeira foto para a capa (seja array ou string legada)
+        let imgSrc = 'assets/imgs/default-placeholder.jpeg';
+        let qtdFotos = 1;
 
-        const imgSrc = post.foto && post.foto !== 'null' ? post.foto : 'assets/imgs/default-placeholder.jpeg';
-
+        if (Array.isArray(post.foto) && post.foto.length > 0) {
+            imgSrc = post.foto[0];
+            qtdFotos = post.foto.length;
+        } else if (typeof post.foto === 'string' && post.foto !== 'null') {
+            imgSrc = post.foto;
+        }
 
         div.innerHTML = `
-            <img src="${imgSrc}" alt="${post.nome || 'Dia-a-dia'}">
+            <div style="position: relative; width: 100%;">
+                <img src="${imgSrc}" alt="${post.data || 'Dia-a-dia'}">
+                ${qtdFotos > 1 ? `<span style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.75); color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem;"><i class="fas fa-images"></i> ${qtdFotos} fotos</span>` : ''}
+            </div>
             <p>${post.descricao || 'Rotina de amor no abrigo.'}</p>
         `;
+
+        // Clique no post abre o modal com o carrossel completo
+        div.addEventListener('click', (e) => {
+            if (e.target.classList.contains('prev') || e.target.classList.contains('next')) return;
+            abrirModalDiario(post);
+        });
 
         carousel.appendChild(div);
     });
 
-
     if (diarios.length > 1) {
         if (btnPrev) carousel.appendChild(btnPrev);
         if (btnNext) carousel.appendChild(btnNext);
-
-
         ativarNavegacaoCarrossel(carousel);
     }
 }
+
+
+function abrirModalDiario(post) {
+    const modal = document.getElementById('modal-diario-carrossel');
+    const titulo = document.getElementById('titulo-modal-diario');
+    const descricao = document.getElementById('descricao-modal-diario');
+    const containerItens = document.getElementById('container-itens-modal-diario');
+    const carrossel = document.getElementById('carrossel-modal-diario');
+
+    if (!modal || !containerItens) return;
+
+    titulo.innerText = `Rotina - ${post.data || ''}`;
+    descricao.innerText = post.descricao || '';
+
+    // Normaliza a lista de fotos (garante array)
+    let fotos = [];
+    if (Array.isArray(post.foto) && post.foto.length > 0) {
+        fotos = post.foto;
+    } else if (typeof post.foto === 'string' && post.foto !== 'null') {
+        fotos = [post.foto];
+    } else {
+        fotos = ['assets/imgs/default-placeholder.jpeg'];
+    }
+
+    containerItens.innerHTML = '';
+
+    // Cria as fotos no carrossel do modal
+    fotos.forEach((fotoSrc, index) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `carousel-item ${index === 0 ? 'active' : ''}`;
+        itemDiv.innerHTML = `<img src="${fotoSrc}" alt="Foto ${index + 1}" style="max-height: 400px; width: 100%; object-fit: contain; border-radius: 8px;">`;
+        containerItens.appendChild(itemDiv);
+    });
+
+    // Ativa navegação do carrossel do modal
+    if (fotos.length > 1) {
+        configurarCarrossel('carrossel-modal-diario');
+    }
+
+    modal.classList.remove('hide');
+    document.body.classList.add('no-scroll');
+}
+
+// Fechamento do Modal do Dia-a-Dia
+document.addEventListener('DOMContentLoaded', () => {
+    const btnFecharModalDiario = document.getElementById('fechar-modal-diario');
+    const modalDiarioCarrossel = document.getElementById('modal-diario-carrossel');
+
+    if (btnFecharModalDiario && modalDiarioCarrossel) {
+        btnFecharModalDiario.addEventListener('click', () => {
+            modalDiarioCarrossel.classList.add('hide');
+            document.body.classList.remove('no-scroll');
+        });
+
+        modalDiarioCarrossel.addEventListener('click', (e) => {
+            if (e.target === modalDiarioCarrossel) {
+                modalDiarioCarrossel.classList.add('hide');
+                document.body.classList.remove('no-scroll');
+            }
+        });
+    }
+});
 
 function ativarNavegacaoCarrossel(carousel) {
     const items = carousel.querySelectorAll('.carousel-item');

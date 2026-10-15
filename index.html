@@ -418,12 +418,34 @@
             </div>
         </div>
     </div>
+    <!-- Modal do Carrossel do Dia-a-Dia -->
+    <div class="modal-imagem-overlay hide" id="modal-diario-carrossel">
+        <div class="form-card form-card-login" style="text-align: center; max-width: 600px; width: 90%;">
+            <h3 id="titulo-modal-diario" style="margin-bottom: 15px; color: var(--cor-texto);">Dia-a-Dia</h3>
+
+            <!-- Container do Carrossel das Fotos -->
+            <div id="carrossel-modal-diario" class="carousel" style="margin-bottom: 15px; position: relative;">
+                <div id="container-itens-modal-diario"></div>
+                <button class="prev">❮</button>
+                <button class="next">❯</button>
+            </div>
+
+            <!-- Descrição da atividade -->
+            <p id="descricao-modal-diario"
+                style="margin-bottom: 20px; color: var(--cor-texto); text-align: left; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; font-size: 0.95rem;">
+            </p>
+
+            <div class="botoes-form">
+                <button type="button" class="btn-fechar" id="fechar-modal-diario">Fechar</button>
+            </div>
+        </div>
+    </div>
 
     <footer>
 
         <div>
             <p>&copy; ARCA DE NOE. Todos os direitos reservados.</p>
-            <p>VERSÃO: <span>1.2.5</span> </p>
+            <p>VERSÃO: <span>1.2.6</span> </p>
             <p>DESENVOLVIDO POR: <a href="mailto:solucoescorporativorga@gmail.com">solucoescorporativorga@gmail.com</a>
             </p>
         </div>
@@ -432,7 +454,7 @@
                 style="max-width: 60px;">
         </div>
     </footer>
-    </div>
+
 
     <script src="scripts/script.js"></script>
 </body>

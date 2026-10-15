@@ -5,6 +5,9 @@ if (!token) {
     window.location.replace('index.html');
 }
 
+
+//https://arca-de-noe.rga.tec.br
+
 const API_URL = "https://arca-de-noe.rga.tec.br"
 
 document.addEventListener('input', function (event) {
@@ -232,6 +235,24 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 displayNomeFicheiroProntuario.textContent = "Nenhum ficheiro selecionado";
                 displayNomeFicheiroProntuario.style.color = "var(--cor-texto-claro)";
+            }
+        });
+    }
+
+    // Fechamento do Modal do Dia-a-Dia no Admin
+    const btnFecharModalDiario = document.getElementById('fechar-modal-diario');
+    const modalDiarioCarrossel = document.getElementById('modal-diario-carrossel');
+
+    if (btnFecharModalDiario && modalDiarioCarrossel) {
+        btnFecharModalDiario.addEventListener('click', () => {
+            modalDiarioCarrossel.classList.add('hide');
+            document.body.classList.remove('no-scroll');
+        });
+
+        modalDiarioCarrossel.addEventListener('click', (e) => {
+            if (e.target === modalDiarioCarrossel) {
+                modalDiarioCarrossel.classList.add('hide');
+                document.body.classList.remove('no-scroll');
             }
         });
     }
@@ -960,38 +981,38 @@ async function salvarMidiaProntuario(dadosParciais) {
 
 
 
+// ==========================================
+// UPLOAD DE POST COM MÚLTIPLAS FOTOS
+// ==========================================
+// Substitua APENAS a função uploadDiario() existente em admin-script.js
 async function uploadDiario() {
-
     const form = document.getElementById('form-diario');
-
 
     if (!form.checkValidity()) {
         form.reportValidity();
         return;
     }
 
-
     const descricao = document.getElementById("descricao-atividade").value.trim();
     const data = document.getElementById("data").value.trim();
-    const foto = document.getElementById("fotos");
+    const fotoInput = document.getElementById("fotos");
 
+    let arrayFotos = [];
 
-
-    // 3. Declaramos a variável vazia primeiro, para existir no escopo inteiro
-    let fotoFinal = null;
-
-    if (foto && foto.files && foto.files.length > 0) {
+    // Mutiplas imagens: converte todos os arquivos do input file em Array de Base64
+    if (fotoInput && fotoInput.files && fotoInput.files.length > 0) {
         try {
-            fotoFinal = await convertFileToBase64(foto.files[0]);
+            const promessas = Array.from(fotoInput.files).map(file => convertFileToBase64(file));
+            arrayFotos = await Promise.all(promessas);
         } catch (err) {
-            console.error("Erro ao converter foto:", err);
-            alert("Erro ao processar o arquivo de imagem.");
+            console.error("Erro ao converter fotos:", err);
+            alert("Erro ao processar os arquivos de imagem.");
             return;
         }
     }
 
     const novoDiario = {
-        foto: fotoFinal,
+        foto: arrayFotos, // Envia como List<String>
         descricao: descricao,
         data: data
     };
@@ -1006,15 +1027,152 @@ async function uploadDiario() {
         if (response.ok) {
             document.getElementById('form-diario').reset();
             alert('Rotina cadastrada com sucesso!');
-            arregarDiarioAdmin();
+            carregarDiarioAdmin(); // Chama o recarregamento já existente
         } else {
             alert('Erro ao cadastrar rotina.');
         }
     } catch (error) {
         console.error('Erro:', error);
     }
+}
 
+// ==========================================
+// LISTAR POSTS NO PAINEL ADMIN
+// ==========================================
+// ==========================================
+// LISTAR POSTS NO PAINEL ADMIN (ATUALIZADO)
+// ==========================================
+async function carregarDiarioAdmin() {
+    try {
+        const response = await fetchAutenticado('/diario', {
+            method: 'GET'
+        });
 
+        if (response.ok) {
+            const diarios = await response.json();
+            const container = document.getElementById('lista-diario');
+            container.innerHTML = '';
+
+            if (diarios.length === 0) {
+                container.innerHTML = '<p style="color: var(--cor-texto-claro); grid-column: 1 / -1; text-align: center;">Nenhuma rotina publicada ainda.</p>';
+                return;
+            }
+
+            diarios.forEach(post => {
+                const div = document.createElement('div');
+                div.className = 'request-card';
+
+                // Trata o campo 'foto' e usa a logo.png como fallback para evitar o erro 404
+                let imgSrc = 'assets/imgs/logo.png';
+                let qtdFotos = 0;
+
+                if (Array.isArray(post.foto) && post.foto.length > 0) {
+                    imgSrc = post.foto[0];
+                    qtdFotos = post.foto.length;
+                } else if (typeof post.foto === 'string' && post.foto !== 'null') {
+                    imgSrc = post.foto;
+                    qtdFotos = 1;
+                }
+
+                div.innerHTML = `
+                    <div class="request-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="status-badge available">${post.data || ''}</span>
+                        ${qtdFotos > 1 ? `<span style="background: var(--cor-primaria); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;"><i class="fas fa-images"></i> ${qtdFotos} fotos</span>` : ''}
+                    </div>
+                    
+                    <!-- Adicionamos uma classe 'click-carrossel' e um cursor pointer na área da foto -->
+                    <div class="request-body click-carrossel" style="text-align: center; margin-top: 10px; cursor: pointer;" title="Clique para ver o carrossel">
+                        <img src="${imgSrc}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--glass-border);">
+                        <p>${post.descricao || ''}</p>
+                    </div>
+
+                    <div class="request-actions">
+                        <button class="btn-danger" style="width: 100%; background-color: #e74c3c; border: none; padding: 10px; color: white; border-radius: 8px; cursor: pointer;" onclick="abrirModalDeletarDiario(${post.id})">
+                            <i class="fas fa-trash"></i> APAGAR POST
+                        </button>
+                    </div>
+                `;
+
+                // Evento de clique aciona a abertura do modal
+                const areaClique = div.querySelector('.click-carrossel');
+                areaClique.addEventListener('click', () => {
+                    abrirModalDiario(post);
+                });
+
+                container.appendChild(div);
+            });
+        }
+    } catch (error) {
+        console.error('Erro ao carregar lista do dia-a-dia:', error);
+    }
+}
+
+// ==========================================
+// FUNÇÕES DO MODAL CARROSSEL (ADMIN)
+// ==========================================
+function abrirModalDiario(post) {
+    const modal = document.getElementById('modal-diario-carrossel');
+    const titulo = document.getElementById('titulo-modal-diario');
+    const descricao = document.getElementById('descricao-modal-diario');
+    const containerItens = document.getElementById('container-itens-modal-diario');
+
+    if (!modal || !containerItens) return;
+
+    titulo.innerText = `Rotina - ${post.data || ''}`;
+    descricao.innerText = post.descricao || '';
+
+    let fotos = Array.isArray(post.foto) && post.foto.length > 0 ? post.foto : [post.foto || 'assets/imgs/logo.png'];
+
+    containerItens.innerHTML = '';
+    fotos.forEach((fotoSrc, index) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = `carousel-item ${index === 0 ? 'active' : ''}`;
+        itemDiv.innerHTML = `<img src="${fotoSrc}" alt="Foto ${index + 1}" style="max-height: 400px; width: 100%; object-fit: contain; border-radius: 8px;">`;
+        containerItens.appendChild(itemDiv);
+    });
+
+    if (fotos.length > 1) {
+        configurarCarrossel('carrossel-modal-diario');
+    }
+
+    modal.classList.remove('hide');
+    document.body.classList.add('no-scroll');
+}
+
+function configurarCarrossel(idCarrossel) {
+    const carousel = document.getElementById(idCarrossel);
+    if (!carousel) return;
+
+    const btnPrev = carousel.querySelector('.prev');
+    const btnNext = carousel.querySelector('.next');
+
+    // Substitui os botões para garantir que não existem múltiplos eventos acumulados
+    if (btnPrev) {
+        const newPrev = btnPrev.cloneNode(true);
+        btnPrev.replaceWith(newPrev);
+        newPrev.onclick = () => moverCarrossel(-1, idCarrossel);
+    }
+    if (btnNext) {
+        const newNext = btnNext.cloneNode(true);
+        btnNext.replaceWith(newNext);
+        newNext.onclick = () => moverCarrossel(1, idCarrossel);
+    }
+}
+
+function moverCarrossel(direcao, idCarrossel) {
+    const items = document.querySelectorAll(`#${idCarrossel} .carousel-item`);
+    if (items.length === 0) return;
+
+    let indexAtivo = Array.from(items).findIndex(item => item.classList.contains('active'));
+    if (indexAtivo === -1) indexAtivo = 0;
+    
+    items[indexAtivo].classList.remove('active');
+    
+    let novoIndex = indexAtivo + direcao;
+    if (novoIndex < 0) novoIndex = items.length - 1;
+    if (novoIndex >= items.length) novoIndex = 0;
+    
+    items[novoIndex].classList.add('active');
 }
 
 
@@ -1045,53 +1203,7 @@ async function apagarDocumentoGeral(idDocumento) {
     }
 }
 
-// ==========================================
-// GESTÃO DO DIA-A-DIA
-// ==========================================
 
-async function carregarDiarioAdmin() {
-    try {
-        const response = await fetchAutenticado('/diario', {
-            method: 'GET'
-        });
-
-        if (response.ok) {
-            const diarios = await response.json();
-            const container = document.getElementById('lista-diario');
-            container.innerHTML = '';
-
-            if (diarios.length === 0) {
-                container.innerHTML = '<p style="color: var(--cor-texto-claro); grid-column: 1 / -1; text-align: center;">Nenhuma rotina publicada ainda.</p>';
-                return;
-            }
-
-            diarios.forEach(post => {
-                const div = document.createElement('div');
-                div.className = 'request-card'; // Reaproveitando o estilo de cards de solicitação
-
-                const imgSrc = post.foto && post.foto !== 'null' ? post.foto : 'assets/imgs/default-placeholder.jpeg';
-
-                div.innerHTML = `
-                    <div class="request-header">
-                        <span class="status-badge available">${post.data || ''}</span>
-                    </div>
-                    <div class="request-body" style="text-align: center;">
-                        <img src="${imgSrc}" style="width: 100%; height: 180px; object-fit: cover; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--glass-border);">
-                        <p>${post.descricao || ''}</p>
-                    </div>
-                    <div class="request-actions">
-                        <button class="btn-danger" style="width: 100%; background-color: #e74c3c; border: none; padding: 10px; color: white; border-radius: 8px; cursor: pointer;" onclick="abrirModalDeletarDiario(${post.id})">
-                            <i class="fas fa-trash"></i> APAGAR POST
-                        </button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-    } catch (error) {
-        console.error('Erro ao carregar lista do dia-a-dia:', error);
-    }
-}
 
 function abrirModalDeletarDiario(id) {
     document.getElementById('deletar-diario-id').value = id;

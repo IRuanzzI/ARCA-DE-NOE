@@ -124,8 +124,8 @@
                             <input type="date" id="data" name="data">
                         </div>
                         <div>
-                            <label for="fotos">Foto </label>
-                            <input type="file" id="fotos" name="fotos" class="file-input" required>
+                            <label for="fotos">Fotos (Selecione uma ou mais)</label>
+                            <input type="file" id="fotos" name="fotos" class="file-input" multiple required>
                         </div>
                     </div>
                     <button type="button" onclick="uploadDiario()" class="btn-acao"><i class="fas fa-upload"></i>
@@ -155,6 +155,28 @@
                             Apagar</button>
                         <button onclick="fecharModalDeletarDiario()"
                             style="background-color: transparent; border: 1px solid var(--glass-border); color: var(--cor-texto); padding: 0.8rem 1.5rem; border-radius: 10px; cursor: pointer;">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Modal do Carrossel do Dia-a-Dia no Admin -->
+            <div class="modal-imagem-overlay hide" id="modal-diario-carrossel">
+                <div class="form-card form-card-login" style="text-align: center; max-width: 600px; width: 90%;">
+                    <h3 id="titulo-modal-diario" style="margin-bottom: 15px; color: var(--cor-texto);">Dia-a-Dia</h3>
+
+                    <!-- Container do Carrossel das Fotos -->
+                    <div id="carrossel-modal-diario" class="carousel" style="margin-bottom: 15px; position: relative;">
+                        <div id="container-itens-modal-diario"></div>
+                        <button class="prev">❮</button>
+                        <button class="next">❯</button>
+                    </div>
+
+                    <!-- Descrição da atividade -->
+                    <p id="descricao-modal-diario"
+                        style="margin-bottom: 20px; color: var(--cor-texto); text-align: left; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; font-size: 0.95rem;">
+                    </p>
+
+                    <div class="botoes-form">
+                        <button type="button" class="btn-fechar" id="fechar-modal-diario">Fechar</button>
                     </div>
                 </div>
             </div>
