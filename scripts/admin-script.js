@@ -359,6 +359,49 @@ function convertFileToBase64(file) {
     });
 }
 
+function compressImageToBase64(file, maxWidth = 1080, maxHeight = 1080, quality = 0.7) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                // Calcula as novas dimensões mantendo a proporção
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+
+                // Cria o canvas e desenha a imagem redimensionada
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Exporta como Base64 no formato JPEG com compressão
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                resolve(dataUrl);
+            };
+            img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+}
+
 async function abrirModalProntuario(animalId) {
     try {
         // GET simples, apenas com a URL do ID
@@ -457,6 +500,7 @@ document.getElementById('form-prontuario').addEventListener('submit', async (e) 
     }
 });
 
+// Substitua a função carregarAnimais() por esta:
 async function carregarAnimais() {
     try {
         const response = await fetchAutenticado('/animal', {
@@ -466,44 +510,29 @@ async function carregarAnimais() {
         if (response.ok) {
             const animais = await response.json();
 
+            // Salvamos os animais globalmente para podermos usar na hora de imprimir o PDF
+            window.listaAnimaisGlobal = animais;
+
             const tbody = document.querySelector('#animais .data-table tbody');
-
-            console.log("Animais recebidos do banco:", animais); // ADICIONE ESTA LINHA
-
-
             tbody.innerHTML = '';
 
             animais.forEach(animal => {
                 const tr = document.createElement('tr');
 
-                // Verifica se o prontuário existe antes de tentar extrair os dados
                 const idade = animal.prontuario?.idade || '-';
-
                 const dataEntrada = animal.prontuario?.dataEntrada || '-';
-
                 const dataSaida = animal.prontuario?.dataSaida || '-';
-
                 const adotante = animal.prontuario?.adotante || '-';
-
-                // Formata o boolean para "Sim" ou "Não"
-                const castrado = animal.prontuario?.castrado === true ? 'Sim' :
-                    animal.prontuario?.castrado === false ? 'Não' : '-';
-
-                // Se vacinas for um array, junta com vírgula. Se não existir, mostra '-'
-                const vacinas = (animal.prontuario?.vacinas && animal.prontuario.vacinas.length > 0)
-                    ? animal.prontuario.vacinas.join(', ')
-                    : '-';
-
+                const castrado = animal.prontuario?.castrado === true ? 'Sim' : animal.prontuario?.castrado === false ? 'Não' : '-';
+                const vacinas = (animal.prontuario?.vacinas && animal.prontuario.vacinas.length > 0) ? animal.prontuario.vacinas.join(', ') : '-';
                 const info = animal.prontuario?.info || '-';
 
-                // Lógica da Badge de Status
-                const isDisponivel = animal.disponivel !== false; // Assume true se for nulo
+                const isDisponivel = animal.disponivel !== false;
                 const badgeClass = isDisponivel ? 'available' : 'unavailable';
                 const badgeText = isDisponivel ? 'Disponível' : 'Adotado/Inativo';
-                const corBadge = isDisponivel ? 'background-color: #28a745;' : 'background-color: #dc3545;'; // Verde ou Vermelho
+                const corBadge = isDisponivel ? 'background-color: #28a745;' : 'background-color: #dc3545;';
 
                 tr.innerHTML = `
-                    <!-- Clique na foto ou no nome abre a edição básica -->
                     <td style="cursor: pointer;" onclick="abrirModalEditaAnimal(${animal.id}, '${animal.nome}', '${animal.foto}')">
                         <img src="${animal.foto || 'assets/imgs/default-placeholder.jpeg'}" class="table-img">
                     </td>
@@ -520,7 +549,6 @@ async function carregarAnimais() {
                     <td style="cursor: pointer;" onclick="alternarStatusAnimal(${animal.id}, ${isDisponivel})">
                         <span class="status-badge ${badgeClass}" style="${corBadge}">${badgeText}</span>
                     </td>
-                   
                     <td>
                         <button class="btn-icon" onclick="abrirModalFotos(${animal.id})" title="Gerir Fotos" style="background: rgba(75, 192, 232, 0.2); color: var(--cor-primaria);">
                             <i class="fas fa-images"></i>
@@ -536,14 +564,18 @@ async function carregarAnimais() {
                             <i class="fas fa-notes-medical"></i>
                         </button>
                     </td>
-                   <td>
+                    <!-- NOVO BOTÃO DE IMPRIMIR PRONTUÁRIO -->
+                    <td>
+                        <button class="btn-icon" onclick="imprimirProntuario(${animal.id})" title="Imprimir PDF" style="background: rgba(46, 204, 113, 0.2); color: #2ecc71;">
+                            <i class="fas fa-print"></i>
+                        </button>
+                    </td>
+                    <td>
                         <button class="btn-icon delete" onclick="deletar(${animal.id})"><i class="fas fa-trash"></i></button>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
-        } else {
-            console.error('Erro ao carregar a lista de animais.');
         }
     } catch (error) {
         console.error('Erro de conexão ao carregar animais:', error);
@@ -1002,7 +1034,7 @@ async function uploadDiario() {
     // Mutiplas imagens: converte todos os arquivos do input file em Array de Base64
     if (fotoInput && fotoInput.files && fotoInput.files.length > 0) {
         try {
-            const promessas = Array.from(fotoInput.files).map(file => convertFileToBase64(file));
+            const promessas = Array.from(fotoInput.files).map(file => compressImageToBase64(file, 1080, 1080, 0.7));
             arrayFotos = await Promise.all(promessas);
         } catch (err) {
             console.error("Erro ao converter fotos:", err);
@@ -1165,13 +1197,13 @@ function moverCarrossel(direcao, idCarrossel) {
 
     let indexAtivo = Array.from(items).findIndex(item => item.classList.contains('active'));
     if (indexAtivo === -1) indexAtivo = 0;
-    
+
     items[indexAtivo].classList.remove('active');
-    
+
     let novoIndex = indexAtivo + direcao;
     if (novoIndex < 0) novoIndex = items.length - 1;
     if (novoIndex >= items.length) novoIndex = 0;
-    
+
     items[novoIndex].classList.add('active');
 }
 
@@ -1687,4 +1719,174 @@ function sairDoSistema() {
     document.querySelector('.btn-sair');
     localStorage.clear();
     window.location.href = 'index.html';
+}
+
+function imprimirProntuario(animalId) {
+    // Busca o animal na variável global
+    const animal = window.listaAnimaisGlobal.find(a => a.id === animalId);
+
+    if (!animal) {
+        alert("Animal não encontrado.");
+        return;
+    }
+
+    const prontuario = animal.prontuario || {};
+
+    // Tratamento da foto principal
+    const fotoSrc = animal.foto && animal.foto !== 'null' ? animal.foto : '';
+    const fotoHtml = fotoSrc
+        ? `<img src="${fotoSrc}" alt="Foto do Animal" class="animal-foto">`
+        : `<div class="sem-foto">Sem Foto Registrada</div>`;
+
+    // Tratamento das vacinas
+    const vacinasText = (prontuario.vacinas && prontuario.vacinas.length > 0)
+        ? prontuario.vacinas.join(', ')
+        : 'Nenhuma registrada';
+
+    // ==========================================
+    // TRATAMENTO DOS DOCUMENTOS ANEXADOS
+    // ==========================================
+    const documentos = prontuario.documentos || [];
+    let documentosHtml = '';
+
+    if (documentos.length > 0) {
+        // Cria uma quebra de página para começar os anexos numa página nova
+        documentosHtml += `<div class="page-break"></div>`;
+        documentosHtml += `<div class="header"><h2>DOCUMENTOS ANEXADOS</h2></div>`;
+
+        documentos.forEach((docBase64, index) => {
+            const isPdf = docBase64.includes('application/pdf');
+
+            if (isPdf) {
+                // Se for PDF, coloca um aviso pois navegadores não imprimem PDFs dentro de HTMLs dinâmicos
+                documentosHtml += `
+                    <div class="anexo-pdf">
+                        <p><strong>📄 Anexo ${index + 1} - Arquivo PDF</strong></p>
+                        <p><em>Este anexo é um documento PDF. O navegador não permite imprimi-lo diretamente por esta tela. Para imprimi-lo, baixe o arquivo na aba de "Documentos" do animal no sistema.</em></p>
+                    </div>
+                `;
+            } else {
+                // Se for imagem (exames, receitas, etc), imprime normalmente
+                documentosHtml += `
+                    <div class="anexo-img">
+                        <p><strong>📷 Anexo ${index + 1}</strong></p>
+                        <img src="${docBase64}" alt="Documento Anexo ${index + 1}">
+                    </div>
+                `;
+            }
+        });
+    }
+
+    // Cria a janela de impressão
+    const printWindow = window.open('', '_blank', 'width=800,height=800');
+
+    // Monta o layout HTML para o PDF
+    const html = `
+        <!DOCTYPE html>
+        <html lang="pt-br">
+        <head>
+            <meta charset="UTF-8">
+            <title>Prontuário - ${animal.nome}</title>
+            <style>
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; color: #333; line-height: 1.6; }
+                .header { text-align: center; border-bottom: 2px solid #2c3e50; padding-bottom: 15px; margin-bottom: 30px; }
+                .header h1 { margin: 0; color: #2c3e50; text-transform: uppercase; font-size: 26px; }
+                .header h2 { margin: 0; color: #2c3e50; font-size: 20px; }
+                .header p { margin: 5px 0 0 0; font-size: 16px; color: #7f8c8d; }
+                .content { display: flex; gap: 30px; align-items: flex-start; }
+                .foto-column { flex: 0 0 250px; text-align: center; }
+                .animal-foto { max-width: 100%; max-height: 300px; border-radius: 12px; border: 2px solid #ecf0f1; object-fit: cover; }
+                .sem-foto { width: 250px; height: 250px; background: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 12px; color: #95a5a6; }
+                .info-column { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+                .info-group { background: #f9f9f9; padding: 10px 15px; border-radius: 8px; border: 1px solid #eee; }
+                .info-group.full { grid-column: 1 / -1; }
+                .label { font-size: 11px; text-transform: uppercase; color: #7f8c8d; font-weight: bold; letter-spacing: 0.5px; }
+                .value { font-size: 15px; color: #2c3e50; margin-top: 4px; font-weight: 500; }
+                
+                /* Estilos para os anexos */
+                .page-break { page-break-before: always; margin-top: 50px; }
+                .anexo-img { margin-bottom: 40px; text-align: center; page-break-inside: avoid; }
+                .anexo-img img { max-width: 100%; max-height: 900px; border: 1px solid #bdc3c7; border-radius: 8px; }
+                .anexo-pdf { background: #fdfae3; padding: 15px; border: 1px solid #f1c40f; border-radius: 8px; text-align: center; margin-bottom: 20px; color: #8a6d3b; page-break-inside: avoid; }
+                
+                .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #95a5a6; border-top: 1px solid #eee; padding-top: 20px; }
+                
+                @media print {
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>ARCA DE NOÉ</h1>
+                <p>Prontuário Médico Veterinário</p>
+            </div>
+            
+            <div class="content">
+                <div class="foto-column">
+                    ${fotoHtml}
+                </div>
+                
+                <div class="info-column">
+                    <div class="info-group full">
+                        <div class="label">Nome do Animal</div>
+                        <div class="value">${animal.nome}</div>
+                    </div>
+                    <div class="info-group">
+                        <div class="label">Espécie</div>
+                        <div class="value">${prontuario.especie || 'Não informada'}</div>
+                    </div>
+                    <div class="info-group">
+                        <div class="label">Idade Estimada</div>
+                        <div class="value">${prontuario.idade || 'Não informada'}</div>
+                    </div>
+                    <div class="info-group">
+                        <div class="label">Peso</div>
+                        <div class="value">${prontuario.peso ? prontuario.peso + ' kg' : 'Não informado'}</div>
+                    </div>
+                    <div class="info-group">
+                        <div class="label">Status Reprodutivo</div>
+                        <div class="value">${prontuario.castrado ? 'Castrado' : 'Não Castrado'}</div>
+                    </div>
+                    <div class="info-group">
+                        <div class="label">Data de Entrada</div>
+                        <div class="value">${prontuario.dataEntrada ? prontuario.dataEntrada.split('-').reverse().join('/') : 'Não informada'}</div>
+                    </div>
+                    <div class="info-group">
+                        <div class="label">Data de Saída</div>
+                        <div class="value">${prontuario.dataSaida ? prontuario.dataSaida.split('-').reverse().join('/') : '-'}</div>
+                    </div>
+                    <div class="info-group full">
+                        <div class="label">Histórico de Vacinas</div>
+                        <div class="value">${vacinasText}</div>
+                    </div>
+                    <div class="info-group full">
+                        <div class="label">Informações Adicionais / Histórico Clínico</div>
+                        <div class="value">${prontuario.info ? prontuario.info.replace(/\n/g, '<br>') : 'Nenhuma observação.'}</div>
+                    </div>
+                    <div class="info-group full">
+                        <div class="label">Dados do Adotante (Se aplicável)</div>
+                        <div class="value">${prontuario.adotante || 'Sem registro de adotante.'}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- INSERE OS DOCUMENTOS AQUI -->
+            ${documentosHtml}
+            
+            <div class="footer">
+                <p>Documento gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} - Sistema de Gestão Arca de Noé</p>
+            </div>
+        </body>
+        </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+
+    // Aguarda um tempo um pouco maior (1 segundo) para garantir que todas as imagens anexadas carreguem antes da tela de impressão abrir
+    setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+    }, 1000);
 }
