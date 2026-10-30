@@ -11,10 +11,9 @@
     --cor-texto: #E2E8F0;
     --cor-texto-claro: #94A3B8;
     --cor-branco: #FFFFFF;
-
-    --glass-bg: rgba(255, 255, 255, 0.05);
-    --glass-bg-hover: rgba(255, 255, 255, 0.1);
-    --glass-border: rgba(255, 255, 255, 0.15);
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-bg-hover: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.08);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
@@ -137,6 +136,14 @@ nav a.highlight:hover {
 #texto-animado {
     font-family: "Antonio", sans-serif;
     font-size: 18px;
+    min-height: 120px; 
+    display: block;
+}
+
+@media (max-width: 768px) {
+    #texto-animado {
+        min-height: 180px; 
+    }
 }
 
 /* =========================================
@@ -294,8 +301,13 @@ section {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .carousel-item.active {
@@ -439,9 +451,12 @@ section {
 }
 
 .btn-adotar:hover,
-.btn-apadrinhar:hover {
-    background: var(--cor-primaria);
+.btn-apadrinhar:hover,
+.btn-primary:hover {
+    background-color: var(--cor-primaria-hover);
     color: var(--cor-fundo);
+    box-shadow: 0 0 15px rgba(75, 192, 232, 0.4); 
+    transform: translateY(-3px);
 }
 
 .prev-netflix,
@@ -731,8 +746,15 @@ footer a:hover {
 }
 
 @keyframes piscar {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
 }
 
 /* =========================================
@@ -983,11 +1005,30 @@ footer a:hover {
     transform: scale(1.1);
 }
 
-.dash-icon.orange { background: rgba(230, 126, 34, 0.2); color: #e67e22; }
-.dash-icon.blue { background: rgba(75, 192, 232, 0.2); color: var(--cor-primaria); }
-.dash-icon.green { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
-.dash-icon.purple { background: rgba(155, 89, 182, 0.2); color: #9b59b6; }
-.dash-icon.dark { background: rgba(255, 255, 255, 0.1); color: var(--cor-branco); }
+.dash-icon.orange {
+    background: rgba(230, 126, 34, 0.2);
+    color: #e67e22;
+}
+
+.dash-icon.blue {
+    background: rgba(75, 192, 232, 0.2);
+    color: var(--cor-primaria);
+}
+
+.dash-icon.green {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
+
+.dash-icon.purple {
+    background: rgba(155, 89, 182, 0.2);
+    color: #9b59b6;
+}
+
+.dash-icon.dark {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--cor-branco);
+}
 
 .dash-card h4 {
     color: var(--cor-branco);
@@ -1071,9 +1112,20 @@ footer a:hover {
     font-weight: 600;
 }
 
-.status-badge.pending { background-color: rgba(241, 196, 15, 0.2); color: #f1c40f; }
-.status-badge.available { background-color: rgba(75, 192, 232, 0.2); color: var(--cor-primaria); }
-.status-badge.success { background-color: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+.status-badge.pending {
+    background-color: rgba(241, 196, 15, 0.2);
+    color: #f1c40f;
+}
+
+.status-badge.available {
+    background-color: rgba(75, 192, 232, 0.2);
+    color: var(--cor-primaria);
+}
+
+.status-badge.success {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
 
 .table-actions {
     display: flex;
@@ -1289,8 +1341,13 @@ footer a:hover {
     position: relative;
 }
 
-.modal-prontuario { max-width: 700px; }
-.modal-edita-animal { max-width: 450px; }
+.modal-prontuario {
+    max-width: 700px;
+}
+
+.modal-edita-animal {
+    max-width: 450px;
+}
 
 .modal-header {
     display: flex;
@@ -1626,7 +1683,8 @@ footer a:hover {
 
     .sidebar-footer {
         padding: 1rem;
-        display: block; /* Mantém o rodapé da sidebar visível no mobile para o botão sair */
+        display: block;
+        /* Mantém o rodapé da sidebar visível no mobile para o botão sair */
     }
 
     .admin-content {
@@ -1692,7 +1750,7 @@ footer a:hover {
         padding: 1rem;
     }
 
-    .search-bar > div {
+    .search-bar>div {
         flex-direction: column;
         width: 100% !important;
     }
