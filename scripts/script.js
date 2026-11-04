@@ -1,4 +1,45 @@
-const API_URL = "http://localhost:8080"
+const API_URL = "https://arca-de-noe.rga.tec.br"
+
+async function copiarChave() {
+    const chavePix = document.getElementById('chave-pix');
+    const status = document.getElementById('pix-copy-status');
+
+    if (!chavePix || !status) {
+        return;
+    }
+
+    const chave = chavePix.textContent.trim();
+
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(chave);
+        } else {
+            const campoTemporario = document.createElement('textarea');
+            campoTemporario.value = chave;
+            campoTemporario.setAttribute('readonly', '');
+            campoTemporario.style.position = 'fixed';
+            campoTemporario.style.opacity = '0';
+            document.body.appendChild(campoTemporario);
+            try {
+                campoTemporario.select();
+
+                if (!document.execCommand('copy')) {
+                    throw new Error('Não foi possível copiar a chave Pix.');
+                }
+            } finally {
+                campoTemporario.remove();
+            }
+        }
+
+        status.textContent = 'Chave Pix copiada!';
+        window.setTimeout(() => {
+            status.textContent = '';
+        }, 3000);
+    } catch (error) {
+        console.error('Erro ao copiar a chave Pix:', error);
+        status.textContent = 'Não foi possível copiar. Selecione a chave manualmente.';
+    }
+}
 
 
 
@@ -50,6 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     carregarEstrelinhas();
 
+    const botaoCopiarPix = document.getElementById('btn-copiar-pix');
+    if (botaoCopiarPix) {
+        botaoCopiarPix.addEventListener('click', copiarChave);
+    }
 
 
 
@@ -794,4 +839,3 @@ async function carregarEstrelinhas() {
         console.error('Erro na requisição:', error);
     }
 }
-

@@ -8,7 +8,7 @@ if (!token) {
 
 //https://arca-de-noe.rga.tec.br
 
-const API_URL = "http://localhost:8080"
+const API_URL = "https://arca-de-noe.rga.tec.br"
 
 document.addEventListener('input', function (event) {
     const elemento = event.target;
